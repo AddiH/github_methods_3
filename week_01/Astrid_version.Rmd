@@ -5,52 +5,10 @@ date: "20/09/21"
 output: html_document
 ---
 
-<style type="text/css">
-  body{
-  font-size: 14pt;
-}
-</style>
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
-
-# 3) Brushing up on the General Linear Model
-
-We'll do a light start and get you back in the game of thinking about formulae and how to build your linear models  
-Finally, we'll have a few exercises, finishing off today's practical exercises 
-
-## A list of formulae
-```{r, eval=FALSE}
-formula <- y ~ x ## y as a function of x
-y ~ 1 ## model the intercept for "y"
-y ~ x ## model the main effect of x and the intercept for y
-y ~ x + 1 ## the same as above (+ 1 is implicit)
-y ~ x + 0 ## model the main effect of x and no intercept
-y ~ x - 1 ## the same as above
-y ~ 0 ## doesn't model anything (for completeness)
-y ~ x + z ## model the main effects x and z (and an intercept)
-y ~ x:z ## model interaction of x and z
-y ~ x * z ## model the main effects x and z and their interaction
-y ~ x + z + x:z ## the same as above
-```
-
-## Dataset mtcars
-Let's look at the "mtcars" data:  
-
-_[, 1]   mpg   Miles/(US) gallon  
-[, 2]	 cyl	 Number of cylinders  
-[, 3]	 disp	 Displacement (cu.in.)  
-[, 4]	 hp	 Gross horsepower  
-[, 5]	 drat	 Rear axle ratio  
-[, 6]	 wt	 Weight (lb/1000)  
-[, 7]	 qsec	 1/4 mile time  
-[, 8]	 vs	 V/S  
-[, 9]	 am	 Transmission (0 = automatic, 1 = manual)  
-[,10]	 gear	 Number of forward gears  
-[,11]	 carb	 Number of carburetors_  
-
 
 ## Miles per gallon and weight
 
@@ -58,9 +16,14 @@ We can do a scatter plot, and it looks like there is some relation between fuel 
 Let's investigate this further
 
 ```{r,fig.height=5, fig.width=6}
+
+# This changes some graphical stuff apparently
 par(font.lab=2, font.axis=2, cex=1.2)
+
+# Using the build in R plotting tool and not ggplot
 plot(mpg ~ wt, data=mtcars, xlab='Weight (lb/1000)', ylab='Miles/(US) gallon',
      main='Scatter plot', ylim=c(0, 40))
+
 ```
 
 # Exercises and objectives
