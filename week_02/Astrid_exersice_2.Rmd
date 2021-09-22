@@ -13,7 +13,7 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-pacman::p_load(tidyverse)
+pacman::p_load(tidyverse, lme4)
 ```
 
 # Assignment 1: Using mixed effects modelling to model hierarchical data
@@ -133,18 +133,103 @@ example.formula <- formula(dep.variable ~ first.level.variable + (1 | second.lev
 
 1) Build four models and do some comparisons
     i. a single level model that models _f0mn_ as dependent on _gender_
+    
+```{r}
+
+hist(politeness$f0mn)
+
+ggplot(politeness, aes(sample=f0mn)) +
+  stat_qq() +
+  stat_qq_line(color = "red") +
+  labs(x = "Theoretical Quantiles", y = "Sample Quantiles") +
+  ggtitle("Q-Q Plot of politeness") +
+  theme_minimal()
+#Is it normal enough to model?
+
+modeli <- lm(f0mn ~ gender, data = politeness)
+modeli
+#Why lm?
+
+```
+    
+    
     ii. a two-level model that adds a second level on top of i. where unique intercepts are modelled for each _scenario_
+```{r}
+modelii <- lmer(f0mn ~ gender + (1 | scenario), data = politeness)
+modelii
+```
+    
     iii. a two-level model that only has _subject_ as an intercept 
+```{r}
+modeliii <- lmer(f0mn ~ gender + (1 | subject), data = politeness)
+modeliii
+```
+    
     iv. a two-level model that models intercepts for both _scenario_ and _subject_
+    
     v. which of the models has the lowest residual standard deviation, also compare the Akaike Information Criterion `AIC`?
     vi. which of the second-level effects explains the most variance?
 2) Why is our single-level model bad?
-    i. create a new data frame that has three variables, _subject_, _gender_ and _f0mn_, where _f0mn_ is the average of all responses of each subject, i.e. averaging across _attitude_ and_scenario_
+    i. create a new data frame that has three variables, _subject_, _gender_ and _f0mn_, where _f0mn_ is the average of all responses of each subject, i.e. averaging across (ignoring) _attitude_ and_scenario_
+    
+```{r}
+
+twoi <- politeness %>% 
+  filter(!is.na(f0mn)) %>% 
+  group_by(subject, gender) %>% 
+  summarise(mean_f0mn = mean(f0mn))
+
+# There is so few N/A that we can kill them off in good faith
+
+```
+    
+    
     ii. build a single-level model that models _f0mn_ as dependent on _gender_ using this new dataset
+    
+```{r}
+
+twoii <- lm(mean_f0mn ~ gender, data = twoi)
+twoii
+
+```
+    
+    
     iii. make Quantile-Quantile plots, comparing theoretical quantiles to the sample quantiles) using `qqnorm` and `qqline` for the new single-level model and compare it to the old single-level model (from 1).i). Which model's residuals ($\epsilon$) fulfil the assumptions of the General Linear Model better?)
+    
+```{r}
+
+qqnorm(residuals(twoii))
+qqline(residuals(twoii))
+
+qqnorm(residuals(modeli))
+qqline(residuals(modeli))
+
+#The model from 1i fits better, cause so many dots are on the line. ?
+
+```
+    
     iv. Also make a quantile-quantile plot for the residuals of the  multilevel model with two intercepts. Does it look alright?
+    
+```{r}
+
+m4 <- lmer(f0mn ~ gender + (1 | scenario) + (1 | subject), data = politeness)
+
+qqnorm(residuals(m4))
+qqline(residuals(m4))
+
+```
+    
+    
 3) Plotting the two-intercepts model
     i. Create a plot for each subject, (similar to part 3 in Exercise 1), this time also indicating the fitted value for each of the subjects for each for the scenarios (hint use `fixef` to get the "grand effects" for each gender and `ranef` to get the subject- and scenario-specific effects)
+    
+```{r}
+
+what <- fixef(m4)
+tf <- ranef(m4)
+
+```
+    
     
 ## Exercise 3 - now with attitude
 
