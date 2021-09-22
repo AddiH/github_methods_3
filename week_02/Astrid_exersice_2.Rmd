@@ -67,22 +67,57 @@ f1df <- politeness %>%
 hist(f1df$f0mn)
 #This is not normal, is that ok?
 
+f1df$scenario <- as.integer(f1df$scenario)
 class(f1df$scenario)
-lm(f0mn ~ scenario, data = f1df)
+integer_model <- lm(f0mn ~ scenario, data = f1df)
 #How do we chose between lm, glm, lmer, glmer? This is repeated measures design, lm is bad.
 
 f1df$scenario <- as_factor(f1df$scenario)
 class(f1df$scenario)
-lm(f0mn ~ scenario, data = f1df)
+factor_model <- lm(f0mn ~ scenario, data = f1df)
 
-#R should know that this is not 
+#R should know that this is not an integer that it can do math with, it is a factor and 1 might as well be called "Talking to teacher"
 
 ```
 
 
     i. Include the model matrices, $X$ from the General Linear Model, for these two models in your report and describe the different interpretations of _scenario_ that these entail
+    
+```{r}
+
+model.matrix(integer_model)
+# The matrix shows the scenario as x-values, as a datapoint that has a corresponding y-value(the frequency). The number as the output/value from the scenario
+
+model.matrix(factor_model)
+# Here we see true/false, whether the trial is from the scenario or not. 
+
+
+```
+
     ii. Which coding of _scenario_, as a factor or not, is more fitting?
+    
+```{r}
+
+# Factor is more fitting, 1 is not a value but a name for a specific senario. Coding as an integer makes R do dumdum.
+
+```
+    
+    
 3) Make a plot that includes a subplot for each subject that has _scenario_ on the x-axis and _f0mn_ on the y-axis and where points are colour coded according to _attitude_
+
+```{r}
+
+ggplot(data = politeness, aes(x = scenario, y = f0mn, color = attitude)) +
+  geom_point() +
+  facet_wrap(~ subject) +
+  theme_bw()
+
+#Males have lower frequency than females
+#Some people are not as affected by attitude as others
+#Looking at F5 as an example, the scenario seem to have a bigger impact on voice than attitude
+
+```
+
     i. Describe the differences between subjects
     
 ## Exercise 2  - comparison of models
