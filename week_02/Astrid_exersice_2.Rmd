@@ -1,6 +1,6 @@
 ---
 title: "practical_exercise_2, Methods 3, 2021, autumn semester"
-author: 'Astrid'
+author: 'Anja, Astrid, Jessica, Juli, Magnus'
 date: "22 sep 2021"
 output: pdf_document
 ---
@@ -44,13 +44,14 @@ REMEMBER: This assignment will be part of your final portfolio
 
 glimpse(politeness)
 
-####################################################################################
-#Insert Jess from docs
+# -> Subject = participant
+# -> Gender = gender
+# -> Scenario = condition (e.g. "apologising for being late", "asking a professor for an extension on an assignment" etc)
+# -> Attitude = informal or formal (polite) conditions
+# -> Total_duration = of sentence/saying, in seconds
+# -> f0mn = mean of the f0, which is something to do with frequency (pitch??)
+# -> hiss_count = audible and nasal hissing/air-sucking in between talking
 
-#attidude: polite or informal
-#scenario: what they were supposed to say and to whom
-#f0mn: mean frequency of the voice message
-#hiss: sucking in air
 
 politeness$subject <- as_factor(politeness$subject)
 politeness$gender <- as_factor(politeness$gender)
@@ -59,6 +60,8 @@ politeness$attitude <- as_factor(politeness$attitude)
 glimpse(politeness)
 
 ```
+
+
     
 2) Create a new data frame that just contains the subject _F1_ and run two linear models; one that expresses _f0mn_ as dependent on _scenario_ as an integer; and one that expresses _f0mn_ as dependent on _scenario_ encoded as a factor  
 
@@ -176,7 +179,7 @@ model_2_3
     
 ```{r}
 model_2_4 <- lmer(f0mn ~ gender + (1|subject) + (1|scenario), data = politeness)
-  model_2_4
+ model_2_4
 ```
     
     
@@ -294,20 +297,20 @@ ggplot(data = politeness_na_removed, aes(x = scenario, y = f0mn, color = attitud
 ```{r}
 #Adding attitude as a main effect
 model_3_1 <- lmer(f0mn ~ gender + attitude + (1 | scenario) + (1 | subject), data = politeness)
-model_3_1
+summary(model_3_1)
 ```
     
     ii. make a separate model that besides the main effects of _attitude_ and _gender_ also include their interaction
 ```{r}
 #Adding the interaction of gender and attitude
 model_3_2 <- lmer(f0mn ~ gender * attitude + (1 | scenario) + (1 | subject), data = politeness)
-model_3_2
+summary(model_3_2)
 ```
     iii. describe what the interaction term in the model says about Korean men's pitch when they are polite relative to Korean women's pitch when they are polite (you don't have to judge whether it is interesting)  
 
 ```{r}
 
-#### HILFE #####
+# Men have a bigger gap in pitch when being informal compared to polite (seen in difference between slopes of genderM and genderM:attitudeinf). When Korean men are communicating informaly, their pitch is almost at the level of women's pitch when being polite. Korean women do not change their pitch as much when shifting between informal to polite communication.
 
 ```
 
@@ -360,7 +363,18 @@ AIC2 <- AIC(logLik(model_3_2))
   
 ```{r}
 
-##### HILFE ######
+summary(model_3_2)
+
+# Scaled residuals: 
+#     Min      1Q  Median      3Q     Max 
+# -2.8120 -0.5884 -0.0645  0.4014  3.9100 
+
+# Random effects:
+#  Groups   Name        Variance Std.Dev.
+#  subject  (Intercept) 584.4    24.17   
+#  scenario (Intercept) 106.4    10.32   
+#  Residual             885.5    29.76   
+# Number of obs: 212, groups:  subject, 16; scenario, 7
 
 ```
   
