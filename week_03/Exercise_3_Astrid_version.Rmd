@@ -13,7 +13,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-pacman::p_load(tidyverse, readbulk, lme4)
+pacman::p_load(tidyverse, readbulk, lme4, dplyr)
 ```
 
 # Exercises and objectives
@@ -90,7 +90,7 @@ df$target.type <- as.factor(df$target.type)
 df$rt.obj <- as.numeric(df$rt.obj)
   #reaction time of the objective response
 
-df$obj.resp <- as.numeric(df$rt.obj)
+df$obj.resp <- as.numeric(df$obj.resp)
   #the subjects answer to whether the number was odd or even
 
 df$subject <- as.factor(df$subject)
@@ -178,20 +178,58 @@ Now we __only__ look at the _experiment_ trials (_trial.type_)
 3.1.0) Initialise a new data frame, `data.count`. _count_ should indicate the number of times they categorized their experience as _pas_ 1-4 for each _task_. I.e. the data frame would have for subject 1: for task:singles, pas1 was used # times, pas2 was used # times, pas3 was used # times and pas4 was used # times. You would then do the same for task:pairs and task:quadruplet  
 
 ```{r}
-## you can start from this if you want to, but you can also make your own from scratch
-data.count <- data.frame(count = numeric(), 
-                         pas = numeric(), ## remember to make this into a factor afterwards
-                         task = numeric(), ## and this too
-                         subject = numeric()) ## and this too
+# ## you can start from this if you want to, but you can also make your own from scratch
+# data.count <- data.frame(count = numeric(), 
+#                          pas = numeric(), ## remember to make this into a factor afterwards
+#                          task = numeric(), ## and this too
+#                          subject = numeric()) ## and this too
+
+
+counting <- df %>% 
+  count(subject, task, pas)
+
+counting
+
+##create a df out of our table
+data.count <- as.data.frame.matrix(counting)
+
+data.count <- data.count %>%
+   rename(count = n)
+
+data.count$count <- as.numeric(data.count$count)
+data.count$pas <-  as.numeric(data.count$pas)
+data.count$task <-  as.factor(data.count$task)
+data.count$subject <-  as.numeric(data.count$subject)
+
+
+glimpse(data.count)
+
+
 ```        
 
 3.2.0) Now fit a multilevel model that models a unique "slope" for _pas_ for each _subject_ with the interaction between _pas_ and _task_ and their main effects being modelled  
-    3.2.1. which family should be used?  
-    3.2.2 why is a slope for _pas_ not really being modelled?  
-    3.2.3. if you get a convergence error, try another algorithm (the default is the _Nelder_Mead_) - try (_bobyqa_) for which the `dfoptim` package is needed. In `glmer`, you can add the following for the `control` argument: `glmerControl(optimizer="bobyqa")` (if you are interested, also have a look at the function `allFit`)
-    3.2.4. when you have a converging fit - fit a model with only the main effects of _pas_ and _task_. Compare this with the model that also includes the interaction  
-    3.2.5. indicate which of the two models, you would choose and why  
-    3.2.6. based on your chosen model - write a short report on what this says about the distribution of ratings as dependent on _pas_ and _task_  
+
+```{r}
+
+model.3.2.0 <- glmer(count ~ pas*task + (1+pas|subject), family = poisson, data = data.count)
+
+```
+
+
+  3.2.1. which family should be used?  
+```{r}
+#Poisson because we're working with count. 
+```
+  
+  3.2.2 why is a slope for _pas_ not really being modelled? 
+```{r}
+#It's numeric, as indicated in your text, which means that R is treating the variable class incorrectly
+```
+    
+  3.2.3. if you get a convergence error, try another algorithm (the default is the _Nelder_Mead_) - try (_bobyqa_) for which the `dfoptim` package is needed. In `glmer`, you can add the following for the `control` argument: `glmerControl(optimizer="bobyqa")` (if you are interested, also have a look at the function `allFit`)
+  3.2.4. when you have a converging fit - fit a model with only the main effects of _pas_ and _task_. Compare this with the model that also includes the interaction
+  3.2.5. indicate which of the two models, you would choose and why  
+  3.2.6. based on your chosen model - write a short report on what this says about the distribution of ratings as dependent on _pas_ and _task_ 
     3.2.7. include a plot that shows the estimated amount of ratings for four subjects of your choosing 
 3.3.0) Finally, fit a multilevel model that models _correct_ as dependent on _task_ with a unique intercept for each _subject_  
     3.3.1. does _task_ explain performance?  
