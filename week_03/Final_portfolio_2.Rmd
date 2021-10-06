@@ -14,7 +14,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-pacman::p_load(tidyverse, readbulk, lme4, dplyr, dfoptim, MuMIn)
+pacman::p_load(tidyverse, readbulk, lme4, dplyr, dfoptim, MuMIn, lmerTest)
 ```
 
 # Exercises and objectives
@@ -37,6 +37,8 @@ df <- read_bulk(
   directory = 'experiment_2/',
   fun = read_csv
   )
+
+#df <- read_bulk('experiment_2/')
 ```
 
 2) Describe the data and construct extra variables from the existing variables  
@@ -131,7 +133,7 @@ ggplot(df.1.2.3, aes(x = target.contrast, y = fitted_correct)) +
   
     v. in your own words, describe how the partial pooling model allows for a better fit for each subject  
 ```{r}
-#  - partial pooling enables us access information across all of the participants
+#  - partial pooling enables us to access information across all of the participants
 #  - it improves our estimates throughout individuals
 #  - it illustrates individual variance more
 
@@ -141,7 +143,7 @@ ggplot(df.1.2.3, aes(x = target.contrast, y = fitted_correct)) +
 
 Now we __only__ look at the _experiment_ trials (_trial.type_)  
 
-1) Pick four subjects and plot their Quantile-Quantile (Q-Q) plots for the residuals of their objective response times (_rt.obj_) based on a model where only intercept is modelled  
+1) Pick four subjects and plot their Quantile-Quantile (Q-Q) plots for the residuals of their objective response times (_rt.obj_) based on a model where only intercept is modelled  #This is ambigious!!!! Is it a pool in one DF or plots for each individual??? Lav model og plot individualt for hver subject.
     
 ```{r}
 df_experiment <- filter(df, trial.type=="experiment")
@@ -150,6 +152,8 @@ df_4participants <- filter(df_experiment, subject=="001" | subject=="002" | subj
 model.2.1.1 <- lmer(rt.obj ~ 1 + (1 | subject) , data = df_4participants)
 model.2.1.1
 
+# Evt lav en facet wrap for at se for de individuelle personer # nej ligemeget
+
 qqnorm(residuals(model.2.1.1))
 qqline(residuals(model.2.1.1))
 ```
@@ -157,8 +161,12 @@ qqline(residuals(model.2.1.1))
     i. comment on these
     
       - it's not normal, it's skewed, it has heavy tails
+      # Den her opg gåk bare ud på at forstå at reaction data ikke er normalfordelt - i stedet for at tjekke reaktionstiderne direkte kigger vi på residuals fra modellen. Det er loigemeget om ens data er normaltfordelt!!! 
+      __Det er residualerne der skal være normalfordelte__
+      Hvis data er normalfordelt er der større chance for at residualer er normalfordelt
     
-    ii. does a log-transformation of the response time data improve the Q-Q-plots?
+    ii. does a log-transformation of the response time data improve the Q-Q-plots? # Lav det på ny for hver subject
+    #Sara tip 5 ggarrange(plotnavn1, plotnavn2)
     
 ```{r}
 df_4participants$rt.obj.log <- log(df_4participants$rt.obj)
@@ -171,13 +179,20 @@ qqline(residuals(model.2.1.2))
 #it doesn't improve it, but it looks different
 ```
     
-2) Now do a partial pooling model modelling objective response times as dependent on _task_? (set `REML=FALSE` in your `lmer`-specification)
-    
+2) Now do a partial pooling model modelling objective response times as dependent on _task_? (set __`REML=FALSE`__ in your `lmer`-specification) #bliv ved med kun at bruge experiment, men alle subject
+    ** Only difference is how the numbers look, and whether P values show up **
 ```{r}
-model.2.2.1 <- lmer(rt.obj ~ task + (1 | subject), df_experiment, REML=FALSE)
+model.2.2.1.lmerTest <- lmerTest::lmer(rt.obj ~ task + (1 | subject), data = df_experiment, REML=FALSE)
+model.2.2.1.lme4 <- lme4::lmer(rt.obj ~ task + (1 | subject), data = df_experiment, REML=FALSE)
 
-model.2.2.1
+
+summary(model.2.2.1.lme4)
+summary(model.2.2.1.lmerTest)
+
+
 ```
+     
+    
     
     i. which would you include among your random effects and why? (support your choices with relevant measures, taking into account variance explained and number of parameters going into the modelling)
     
@@ -190,12 +205,19 @@ r.squaredGLMM(model.2.2.1)
     
     ii. explain in your own words what your chosen models says about response times between the different tasks
     
-    - singles has the fastest response time and quadruplet is the fastest
+    - singles has the fastest response time and quadruplet is the fastest #Slowest
+    Fixed effects:
+               Estimate Std. Error t value
+(Intercept)     1.12008    0.07689  14.568
+taskquadruplet -0.15325    0.06257  -2.449
+tasksingles    -0.19154    0.06257  -3.061
+
+Pair (intercept) is slowest, Singels is fastest.
     
 3) Now add _pas_ and its interaction with _task_ to the fixed effects
 
 ```{r}
-model.2.3 <- lmer(rt.obj ~ task * pas + (1 | subject), df_experiment)
+model.2.3 <- lmer(rt.obj ~ task * pas + (1 | subject), df_experiment) #Add REML?
 ```
 
     i. how many types of group intercepts (random effects) can you add without ending up with convergence issues or singular fits?
@@ -215,6 +237,7 @@ print(VarCorr(model.2.3.2), comp='Variance')
 ?isSingular
 
 # our "dimensions" of the variance-covariance matrix have been estimated as zero
+# Hvis vores model beskriver 0 varians... Er der måske et threshold for hvor lidt varians den vil arbejde med?
 ```
     
     iii. in your own words - how could you explain why your model would result in a singular fit?
@@ -227,6 +250,7 @@ print(VarCorr(model.2.3.2), comp='Variance')
 
 ```{r}
 ## you can start from this if you want to, but you can also make your own from scratch
+# Lav det om til factor
 
 
 counting <- df %>% 
@@ -267,7 +291,7 @@ summary(model.3.2.0)
     
     ii. why is a slope for _pas_ not really being modelled?  
 ```{r}
-
+# Hvis vi lige laver pas til factor så giver det ikke mening at lave en slope
 ```
     
     iii. if you get a convergence error, try another algorithm (the default is the _Nelder_Mead_) - try (_bobyqa_) for which the `dfoptim` package is needed. In `glmer`, you can add the following for the `control` argument: `glmerControl(optimizer="bobyqa")` (if you are interested, also have a look at the function `allFit`)
