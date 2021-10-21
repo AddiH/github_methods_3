@@ -352,27 +352,24 @@ RSS <- function(df, par)
     c <- par[3]
     d <- par[4]
     
-    e <- exp(1) #@ is this right?
+    e <- exp(1)
     
     x <- df$target.frames
     y <- df$correct
     
-    y.hat <- a + ((b-a) / (1+e*((c-x)/(d)))) #@ this feels right?
+    y.hat <- a + ((b-a) / (1+e*((c-x)/(d)))) #@ this feels right? is e <- exp(1)?
    
     RSS <- sum((y - y.hat)^2)
     return(RSS)
 }
 ```
 
-```{r}
-# Choose parameters here
-par <- c(1, 1, 1, 1)
-```
-
 
 ## 7.1) 
 Now, we will fit the sigmoid for the four PAS ratings for Subject 7
 ```{r}
+par <- c(1, 1, 1, 1)
+
 sub7.pas1 <- df %>% 
   filter(subject == "7" & pas == "1") 
 
@@ -404,6 +401,19 @@ Use the function `optim`. It returns a list that among other things contains the
     `upper`: upper bounds for the four parameters, (the highest value they can take) can set _c_ and _d_ as `Inf`. Find good choices for _a_ and _b_ yourself (and argue why they are appropriate)
     
 ```{r}
+data <- df %>% 
+  filter(subject == "7" & pas == "1") %>% 
+  mutate(x = target.frames, y = correct)
+par <- c(1, 1, 1, 1)
+
+fn <- data$y == par[1] + ((par[2]-par[1]) / (1+exp(1)*((par[3]-data$x)/(par[4]))))
+method = 'L-BFGS-B'
+lower = c(0, 0, -Inf, -Inf)
+upper = c(1, 1, Inf, Inf)
+
+optim(par = par, data = data,  fn = fn, method = method, lower = lower, upper = upper)
+
+#@ Fejl i fn(par, ...) : could not find function "fn"
 
 ```
     
