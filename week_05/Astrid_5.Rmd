@@ -340,33 +340,59 @@ It has four parameters: _a_, which can be interpreted as the minimum accuracy le
 We can define a function of a residual sum of squares as below
 
 ```{r, eval=FALSE}
-RSS <- function(dataset, par)
+RSS <- function(df, par)
 {
     ## "dataset" should be a data.frame containing the variables x (target.frames)
     ## and y (correct)
     
     ## "par" are our four parameters (a numeric vector) 
     ## par[1]=a, par[2]=b, par[3]=c, par[4]=d
-    x <- dataset$x
-    y <- dataset$y
-    y.hat <- ## you fill in the estimate of y.hat
+    a <- par[1]
+    b <- par[2]
+    c <- par[3]
+    d <- par[4]
+    
+    e <- exp(1) #@ is this right?
+    
+    x <- df$target.frames
+    y <- df$correct
+    
+    y.hat <- a + ((b-a) / (1+e*((c-x)/(d)))) #@ this feels right?
+   
     RSS <- sum((y - y.hat)^2)
     return(RSS)
 }
 ```
 
 ```{r}
-dataset <- df %>% 
-  mutate(x = target.frames, y = correct)
-
+# Choose parameters here
 par <- c(1, 1, 1, 1)
 ```
 
 
-
-
 ## 7.1) 
 Now, we will fit the sigmoid for the four PAS ratings for Subject 7
+```{r}
+sub7.pas1 <- df %>% 
+  filter(subject == "7" & pas == "1") 
+
+sub7.pas2 <- df %>% 
+  filter(subject == "7" & pas == "2") 
+
+sub7.pas3 <- df %>% 
+  filter(subject == "7" & pas == "3") 
+
+sub7.pas4 <- df %>% 
+  filter(subject == "7" & pas == "4") 
+
+#@ do we do this for all pas? Is this what is meant?
+
+sig.pas1 <- RSS(sub7.pas1, par)
+sig.pas2 <- RSS(sub7.pas2, par)
+sig.pas3 <- RSS(sub7.pas3, par)
+sig.pas4 <- RSS(sub7.pas4, par)
+```
+
 ### 7.1.i. 
 Use the function `optim`. It returns a list that among other things contains the four estimated parameters. 
     You should set the following arguments:  
