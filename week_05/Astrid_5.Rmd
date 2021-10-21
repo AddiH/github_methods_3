@@ -355,6 +355,16 @@ RSS <- function(dataset, par)
 }
 ```
 
+```{r}
+dataset <- df %>% 
+  mutate(x = target.frames, y = correct)
+
+par <- c(1, 1, 1, 1)
+```
+
+
+
+
 ## 7.1) 
 Now, we will fit the sigmoid for the four PAS ratings for Subject 7
 ### 7.1.i. 
@@ -365,7 +375,13 @@ Use the function `optim`. It returns a list that among other things contains the
     `data`: the data frame with _x_, _target.frames_, and _y_, _correct_ in it  
     `method`: 'L-BFGS-B'  
     `lower`: lower bounds for the four parameters, (the lowest value they can take), you can set _c_ and _d_ as `-Inf`. Find good choices for _a_ and _b_ yourself (and argue why they are appropriate)  
-    `upper`: upper bounds for the four parameters, (the highest value they can take) can set _c_ and _d_ as `Inf`. Find good choices for _a_ and _b_ yourself (and argue why they are appropriate)    
+    `upper`: upper bounds for the four parameters, (the highest value they can take) can set _c_ and _d_ as `Inf`. Find good choices for _a_ and _b_ yourself (and argue why they are appropriate)
+    
+```{r}
+
+```
+    
+    
 ### 7.1.ii. 
 Plot the fits for the PAS ratings on a single plot (for subject 7) `xlim=c(0, 8)`
 ### 7.1.iii. 
