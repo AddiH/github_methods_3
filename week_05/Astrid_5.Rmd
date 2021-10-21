@@ -261,7 +261,7 @@ Plot the estimated group-level functions over `xlim=c(0, 8)` for each of the fou
 ```
   
 
-# EXERCISE 6 
+# Just need to figure out the matrix(c(0, 0, 0, 0, 0, 1, 0, 0) thing is EXERCISE 6 
 Test linear hypotheses
 
 In this section we are going to test different hypotheses. We assume that we have already proved that more objective evidence (longer duration of stimuli) is sufficient to increase accuracy in and of itself and that more subjective evidence (higher PAS ratings) is also sufficient to increase accuracy in and of itself.  
@@ -294,33 +294,41 @@ pas2:target.frames  0.44719    0.03475  12.869  < 2e-16 ***
 ## 6.2) 
 `summary` won't allow you to test whether accuracy increases faster with objective evidence for PAS 3 than for PAS 2 (unless you use `relevel`, which you are not allowed to in this exercise). Instead, we'll be using the function `glht` from the `multcomp` package
 ```{r}
-
+multcomp::glht(m.6.1)
+#@ this is identical to the summary()? Surely that is not the point?
 ```
 
 ### 6.2.i. 
-To redo the test in 6.1.i, you can create a _contrast_ vector. This vector will have the length of the number of estimated group-level effects and any specific contrast you can think of can be specified using this. For redoing the test from 6.1.i, the code snippet below will do
+To redo the test in 6.1.i, you can create a _contrast_ vector. This vector will have the length of the number of estimated group-level effects and any specific contrast you can think of can be specified using this. For redoing the test from 6.1.i, the code snippet below will do.
+```{r}
+## testing whether PAS 2 is different from PAS 1
+contrast.vector <- matrix(c(0, 0, 0, 0, 0, 1, 0, 0), nrow=1)
+gh <- glht(m.6.1, contrast.vector)
+print(summary(gh))
+## as another example, we could also test whether there is a difference in
+## intercepts between PAS 2 and PAS 3
+contrast.vector <- matrix(c(0, -1, 1, 0, 0, 0, 0, 0), nrow=1)
+gh <- glht(m.6.1, contrast.vector)
+print(summary(gh))
+```
+> #@ very nice but I don't know what is going on, or how to read it
+
 ### 6.2.ii. 
 Now test the hypothesis that accuracy increases faster with objective evidence for PAS 3 than for PAS 2.
+```{r}
+#@ I assume this can be achived by chaning some of the 0 and 1 in the code and running it again, but which ones tho.
+```
+
 ### 6.2.iii. 
 Also test the hypothesis that accuracy increases faster with objective evidence for PAS 4 than for PAS 3
+
+
 ## 6.3) 
 Finally, test that whether the difference between PAS 2 and 1 (tested in 6.1.i) is greater than the difference between PAS 4 and 3 (tested in 6.2.iii)
 ```{r}
 
 ```
 
-### Snippet for 6.2.i
-```{r, eval=FALSE}
-## testing whether PAS 2 is different from PAS 1
-contrast.vector <- matrix(c(0, 0, 0, 0, 0, 1, 0, 0), nrow=1)
-gh <- glht(pas.intact.tf.ranslopeint.with.corr, contrast.vector)
-print(summary(gh))
-## as another example, we could also test whether there is a difference in
-## intercepts between PAS 2 and PAS 3
-contrast.vector <- matrix(c(0, -1, 1, 0, 0, 0, 0, 0), nrow=1)
-gh <- glht(pas.intact.tf.ranslopeint.with.corr, contrast.vector)
-print(summary(gh))
-```
 
 # EXERCISE 7 
 Estimate psychometric functions for the Perceptual Awareness Scale and evaluate them  
