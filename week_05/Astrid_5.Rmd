@@ -311,7 +311,7 @@ contrast.vector <- matrix(c(0, -1, 1, 0, 0, 0, 0, 0), nrow=1)
 gh <- glht(m.6.1, contrast.vector)
 print(summary(gh))
 ```
-> #@ very nice but I don't know what is going on, or how to read it
+> > \textcolor{blue}{very nice but I don't know what is going on, or how to read it}
 
 ### 6.2.ii. 
 Now test the hypothesis that accuracy increases faster with objective evidence for PAS 3 than for PAS 2.
@@ -406,21 +406,43 @@ Use the function `optim`. It returns a list that among other things contains the
     
 ```{r}
 # for data argument, choose between sub7.pas1, -2, -3 and -4.
-
-par <- c(1, 1, 1, 1)
+par <- c(0.1, 5, 1, 1)
+    # a, the minimum accuracy level is set to 0,1 because being accurate is important, and we probably want it to be low?
+    # b, the maximum accuracy level is set to 5, because I believe in being 5 accurate #voteastridforpresident
 
 #fn <- data$y == par[1] + ((par[2]-par[1]) / (1+exp(1)*((par[3]-data$x)/(par[4]))))
+fn <- RSS
 method = 'L-BFGS-B'
-lower = c(0, 0, -Inf, -Inf)
-upper = c(1, 1, Inf, Inf)
+lower = c(-5, 0, -Inf, -Inf)
+# a, the minimum accuracy level is set to -5 because being accurate is important, and we probably        want it to be low?
+    # b, the maximum accuracy level is set to Inf, because i believe in being infinitely accurate
+upper = c(0.1, Inf, Inf, Inf)
+    # a, the minimum accuracy level is set to 0,1 because being accurate is important, and we probably        want it to be low?
+    # b, the maximum accuracy level is set to Inf, because i believe in being infinitely accurate
 
-optim(par = par, data = sub7.pas1,  fn = RSS, method = method, lower = lower, upper = upper)
+optim.sub7.pas1 <- optim(par = par, data = sub7.pas1,  fn = fn, method = method, lower = lower, upper = upper)
+optim.sub7.pas2 <- optim(par = par, data = sub7.pas2,  fn = fn, method = method, lower = lower, upper = upper)
+optim.sub7.pas3 <- optim(par = par, data = sub7.pas3,  fn = fn, method = method, lower = lower, upper = upper)
+optim.sub7.pas4 <- optim(par = par, data = sub7.pas4,  fn = fn, method = method, lower = lower, upper = upper)
 
 ```
-    
+> > \textcolor{blue}{Do I know that any of this is correct? No, but lets continue.}    
     
 ### 7.1.ii. 
 Plot the fits for the PAS ratings on a single plot (for subject 7) `xlim=c(0, 8)`
+```{r}
+
+# Weeeellll, this is ugly af, but it is just the formula for the sigmoid, with the optimized parameters that we found before
+fit.pas1 <- optim.sub7.pas1$par[1] + ((optim.sub7.pas1$par[2]-optim.sub7.pas1$par[1]) / (1+exp(1)*((optim.sub7.pas1$par[3]-sub7.pas1$x)/(optim.sub7.pas1$par[4]))))
+
+fit.pas2 <- optim.sub7.pas2$par[1] + ((optim.sub7.pas2$par[2]-optim.sub7.pas2$par[1]) / (1+exp(1)*((optim.sub7.pas2$par[3]-sub7.pas2$x)/(optim.sub7.pas2$par[4]))))
+
+fit.pas3 <- optim.sub7.pas3$par[1] + ((optim.sub7.pas3$par[2]-optim.sub7.pas3$par[1]) / (1+exp(1)*((optim.sub7.pas3$par[3]-sub7.pas3$x)/(optim.sub7.pas3$par[4]))))
+
+fit.pas4 <- optim.sub7.pas4$par[1] + ((optim.sub7.pas4$par[2]-optim.sub7.pas4$par[1]) / (1+exp(1)*((optim.sub7.pas4$par[3]-sub7.pas4$x)/(optim.sub7.pas4$par[4]))))
+
+```
+
 ### 7.1.iii. 
 Create a similar plot for the PAS ratings on a single plot (for subject 7), but this time based on the model from 6.1 `xlim=c(0, 8)`   
 ### 7.1.iv. 
