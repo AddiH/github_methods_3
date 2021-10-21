@@ -340,7 +340,7 @@ It has four parameters: _a_, which can be interpreted as the minimum accuracy le
 We can define a function of a residual sum of squares as below
 
 ```{r, eval=FALSE}
-RSS <- function(df, par)
+RSS <- function(data, par)
 {
     ## "dataset" should be a data.frame containing the variables x (target.frames)
     ## and y (correct)
@@ -354,8 +354,8 @@ RSS <- function(df, par)
     
     e <- exp(1)
     
-    x <- df$target.frames
-    y <- df$correct
+    x <- data$x
+    y <- data$y
     
     y.hat <- a + ((b-a) / (1+e*((c-x)/(d)))) #@ this feels right? is e <- exp(1)?
    
@@ -371,16 +371,20 @@ Now, we will fit the sigmoid for the four PAS ratings for Subject 7
 par <- c(1, 1, 1, 1)
 
 sub7.pas1 <- df %>% 
-  filter(subject == "7" & pas == "1") 
+  filter(subject == "7" & pas == "1") %>% 
+  mutate(x = target.frames, y = correct)
 
 sub7.pas2 <- df %>% 
-  filter(subject == "7" & pas == "2") 
+  filter(subject == "7" & pas == "2") %>% 
+  mutate(x = target.frames, y = correct)
 
 sub7.pas3 <- df %>% 
-  filter(subject == "7" & pas == "3") 
+  filter(subject == "7" & pas == "3") %>% 
+  mutate(x = target.frames, y = correct)
 
 sub7.pas4 <- df %>% 
-  filter(subject == "7" & pas == "4") 
+  filter(subject == "7" & pas == "4") %>% 
+  mutate(x = target.frames, y = correct)
 
 #@ do we do this for all pas? Is this what is meant?
 
@@ -401,19 +405,16 @@ Use the function `optim`. It returns a list that among other things contains the
     `upper`: upper bounds for the four parameters, (the highest value they can take) can set _c_ and _d_ as `Inf`. Find good choices for _a_ and _b_ yourself (and argue why they are appropriate)
     
 ```{r}
-data <- df %>% 
-  filter(subject == "7" & pas == "1") %>% 
-  mutate(x = target.frames, y = correct)
+# for data argument, choose between sub7.pas1, -2, -3 and -4.
+
 par <- c(1, 1, 1, 1)
 
-fn <- data$y == par[1] + ((par[2]-par[1]) / (1+exp(1)*((par[3]-data$x)/(par[4]))))
+#fn <- data$y == par[1] + ((par[2]-par[1]) / (1+exp(1)*((par[3]-data$x)/(par[4]))))
 method = 'L-BFGS-B'
 lower = c(0, 0, -Inf, -Inf)
 upper = c(1, 1, Inf, Inf)
 
-optim(par = par, data = data,  fn = fn, method = method, lower = lower, upper = upper)
-
-#@ Fejl i fn(par, ...) : could not find function "fn"
+optim(par = par, data = sub7.pas1,  fn = RSS, method = method, lower = lower, upper = upper)
 
 ```
     
