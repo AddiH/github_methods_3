@@ -28,7 +28,8 @@ REMEMBER: In your report, make sure to include code that can reproduce the answe
 REMEMBER: This is part 2 of Assignment 2 and will be part of your final portfolio
 
 
-# DONE EXERCISE 4
+# EXERCISE 4
+# DONE 
 Download and organise the data from experiment 1
 
 Go to https://osf.io/ecxsj/files/ and download the files associated with Experiment 1 (there should be 29).  
@@ -139,7 +140,8 @@ Describe how the _target.contrast_ and _target.frames_ variables differ compared
 > \textcolor{blue}{Target contrast is the same value for all - 0.1. In experiment 2 it varied between 1 and 0.01000000. Explains how opaque the target number was.
 Target frames varies between 1 and 6, in experiment 2 they were all 3. Explains for how many frames (11.8 ms per frame) the target was shown}
 
-# HELP EXERCISE 5 
+# EXERCISE 5 
+# HELP 
 Use log-likelihood ratio tests to evaluate logistic regression models
 
 ## 5.1) 
@@ -260,8 +262,8 @@ Plot the estimated group-level functions over `xlim=c(0, 8)` for each of the fou
 
 ```
   
-
-# Just need to figure out the matrix(c(0, 0, 0, 0, 0, 1, 0, 0) thing is EXERCISE 6 
+# EXERCISE 6 
+# Just need to figure out the matrix(c(0, 0, 0, 0, 0, 1, 0, 0) thing is
 Test linear hypotheses
 
 In this section we are going to test different hypotheses. We assume that we have already proved that more objective evidence (longer duration of stimuli) is sufficient to increase accuracy in and of itself and that more subjective evidence (higher PAS ratings) is also sufficient to increase accuracy in and of itself.  
@@ -426,22 +428,32 @@ optim.sub7.pas3 <- optim(par = par, data = sub7.pas3,  fn = fn, method = method,
 optim.sub7.pas4 <- optim(par = par, data = sub7.pas4,  fn = fn, method = method, lower = lower, upper = upper)
 
 ```
-> > \textcolor{blue}{Do I know that any of this is correct? No, but lets continue.}    
+>  \textcolor{blue}{Do I know that any of this is correct? No, but lets continue.}    
     
 ### 7.1.ii. 
 Plot the fits for the PAS ratings on a single plot (for subject 7) `xlim=c(0, 8)`
 ```{r}
 
 # Weeeellll, this is ugly af, but it is just the formula for the sigmoid, with the optimized parameters that we found before
-fit.pas1 <- optim.sub7.pas1$par[1] + ((optim.sub7.pas1$par[2]-optim.sub7.pas1$par[1]) / (1+exp(1)*((optim.sub7.pas1$par[3]-sub7.pas1$x)/(optim.sub7.pas1$par[4]))))
+fit.pas1 <- function(x) optim.sub7.pas1$par[1] + ((optim.sub7.pas1$par[2]-optim.sub7.pas1$par[1]) / (1+exp(1)*((optim.sub7.pas1$par[3]-x)/(optim.sub7.pas1$par[4]))))
 
-fit.pas2 <- optim.sub7.pas2$par[1] + ((optim.sub7.pas2$par[2]-optim.sub7.pas2$par[1]) / (1+exp(1)*((optim.sub7.pas2$par[3]-sub7.pas2$x)/(optim.sub7.pas2$par[4]))))
+fit.pas2 <- function(x) optim.sub7.pas2$par[1] + ((optim.sub7.pas2$par[2]-optim.sub7.pas2$par[1]) / (1+exp(1)*((optim.sub7.pas2$par[3]-x)/(optim.sub7.pas2$par[4]))))
 
-fit.pas3 <- optim.sub7.pas3$par[1] + ((optim.sub7.pas3$par[2]-optim.sub7.pas3$par[1]) / (1+exp(1)*((optim.sub7.pas3$par[3]-sub7.pas3$x)/(optim.sub7.pas3$par[4]))))
+fit.pas3 <- function(x) optim.sub7.pas3$par[1] + ((optim.sub7.pas3$par[2]-optim.sub7.pas3$par[1]) / (1+exp(1)*((optim.sub7.pas3$par[3]-x)/(optim.sub7.pas3$par[4]))))
 
-fit.pas4 <- optim.sub7.pas4$par[1] + ((optim.sub7.pas4$par[2]-optim.sub7.pas4$par[1]) / (1+exp(1)*((optim.sub7.pas4$par[3]-sub7.pas4$x)/(optim.sub7.pas4$par[4]))))
+fit.pas4 <- function(x) optim.sub7.pas4$par[1] + ((optim.sub7.pas4$par[2]-optim.sub7.pas4$par[1]) / (1+exp(1)*((optim.sub7.pas4$par[3]-x)/(optim.sub7.pas4$par[4]))))
 
 ```
+
+```{r}
+ ggplot() +
+  xlim(0, 8) +
+  geom_function(aes(colour = "pas1"), fun = fit.pas1) +
+  geom_function(aes(colour = "pas2"),fun = fit.pas2) +
+  geom_function(aes(colour = "pas3"),fun = fit.pas3) +
+  geom_function(aes(colour = "pas4"),fun = fit.pas4)
+```
+>  \textcolor{blue}{Do I know that any of this is correct? No, but lets continue.} 
 
 ### 7.1.iii. 
 Create a similar plot for the PAS ratings on a single plot (for subject 7), but this time based on the model from 6.1 `xlim=c(0, 8)`   
