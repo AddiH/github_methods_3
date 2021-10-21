@@ -210,11 +210,11 @@ sub.intercept <- glmer(correct ~ 1 + (1 | subject), family = binomial, df)
 group.effect <- glmer(correct ~ target.frames + (1 | subject), family = binomial, df)
 
 # add subject-level slopes for _target.frames_
- sub.slope <- glmer(correct ~ target.frames + (subject | target.frames), family = binomial, df)
+# sub.slope <- glmer(correct ~ target.frames + (subject | target.frames), family = binomial, df)
 #@ maxfun < 10 * length(par)^2 is not recommended.
 
 # model correlation between the subject-level slopes and the subject-level intercepts
- sub.interaction <- glmer(correct ~ target.frames * (subject | target.frames), family = binomial, df)
+# sub.interaction <- glmer(correct ~ target.frames * (subject | target.frames), family = binomial, df)
 #@ maxfun < 10 * length(par)^2 is not recommended.
  
  #  We could exchange the 1 with target.frames, but he writes it as "add" to the 
@@ -229,9 +229,9 @@ group.effect <- glmer(correct ~ target.frames + (1 | subject), family = binomial
  #  and slope for the subject are correlated?
 
 
-text <- c("nullmodel", "sub.intercept", "group.effect", "sub.slope", "sub.interaction")
-logLik_values <- anova(nullmodel, sub.intercept, group.effect, sub.slope, sub.interaction)$logLik
-as.tibble(cbind(text, logLik_values))
+# text <- c("nullmodel", "sub.intercept", "group.effect", "sub.slope", "sub.interaction")
+# logLik_values <- anova(nullmodel, sub.intercept, group.effect, sub.slope, sub.interaction)$logLik
+# as.tibble(cbind(text, logLik_values))
 
 ```
 
@@ -333,6 +333,7 @@ Finally, test that whether the difference between PAS 2 and 1 (tested in 6.1.i) 
 
 
 # EXERCISE 7 
+# Maybe fucked up, maybe nailed it
 Estimate psychometric functions for the Perceptual Awareness Scale and evaluate them  
 
 We saw in 5.3 that the estimated functions went below chance at a target duration of 0 frames (0 ms). This does not seem reasonable, so we will be trying a different approach for fitting here.  
@@ -407,6 +408,8 @@ Use the function `optim`. It returns a list that among other things contains the
     `upper`: upper bounds for the four parameters, (the highest value they can take) can set _c_ and _d_ as `Inf`. Find good choices for _a_ and _b_ yourself (and argue why they are appropriate)
     
 ```{r}
+#@ I am not into this "guess the number game". I have about -0.938 intuition on what number to guess.
+
 # for data argument, choose between sub7.pas1, -2, -3 and -4.
 par <- c(0.1, 5, 1, 1)
     # a, the minimum accuracy level is set to 0,1 because being accurate is important, and we probably want it to be low?
@@ -434,7 +437,7 @@ optim.sub7.pas4 <- optim(par = par, data = sub7.pas4,  fn = fn, method = method,
 Plot the fits for the PAS ratings on a single plot (for subject 7) `xlim=c(0, 8)`
 ```{r}
 
-# Weeeellll, this is ugly af, but it is just the formula for the sigmoid, with the optimized parameters that we found before
+#@ Weeeellll, this is ugly af, but it is just the formula for the sigmoid, with the optimized parameters that we found before
 fit.pas1 <- function(x) optim.sub7.pas1$par[1] + ((optim.sub7.pas1$par[2]-optim.sub7.pas1$par[1]) / (1+exp(1)*((optim.sub7.pas1$par[3]-x)/(optim.sub7.pas1$par[4]))))
 
 fit.pas2 <- function(x) optim.sub7.pas2$par[1] + ((optim.sub7.pas2$par[2]-optim.sub7.pas2$par[1]) / (1+exp(1)*((optim.sub7.pas2$par[3]-x)/(optim.sub7.pas2$par[4]))))
@@ -451,9 +454,11 @@ fit.pas4 <- function(x) optim.sub7.pas4$par[1] + ((optim.sub7.pas4$par[2]-optim.
   geom_function(aes(colour = "pas1"), fun = fit.pas1) +
   geom_function(aes(colour = "pas2"),fun = fit.pas2) +
   geom_function(aes(colour = "pas3"),fun = fit.pas3) +
-  geom_function(aes(colour = "pas4"),fun = fit.pas4)
+  geom_function(aes(colour = "pas4"),fun = fit.pas4) +
+  labs(x = "target.frames", y = "Likelihood of being correct", title = "Subject 7") +
+  theme_minimal()
 ```
->  \textcolor{blue}{Do I know that any of this is correct? No, but lets continue.} 
+>  \textcolor{blue}{Do I know that any of this is correct? No, but I assume it is not.} 
 
 ### 7.1.iii. 
 Create a similar plot for the PAS ratings on a single plot (for subject 7), but this time based on the model from 6.1 `xlim=c(0, 8)`   
