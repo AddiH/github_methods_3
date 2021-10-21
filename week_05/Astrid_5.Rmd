@@ -136,8 +136,8 @@ df$correct <- as.logical(df$correct)
 ### 4.1.iv. 
 Describe how the _target.contrast_ and _target.frames_ variables differ compared to the data from part 1 of this assignment  
 
-> Target contrast is the same value for all - 0.1. In experiment 2 it varied between 1 and 0.01000000. Explains how opaque the target number was.
-Target frames varies between 1 and 6, in experiment 2 they were all 3. Explains for how many frames (11.8 ms per frame) the target was shown
+> \textcolor{blue}{Target contrast is the same value for all - 0.1. In experiment 2 it varied between 1 and 0.01000000. Explains how opaque the target number was.
+Target frames varies between 1 and 6, in experiment 2 they were all 3. Explains for how many frames (11.8 ms per frame) the target was shown}
 
 # EXERCISE 5 
 Use log-likelihood ratio tests to evaluate logistic regression models
@@ -179,16 +179,17 @@ lik.fun(m.5.1.pool, df$correct)
 loglik.fun(m.5.1.pool, df$correct)
 logLik(m.5.1.pool)
 ```
-> textcolor{}{}When checking our function with the logLik, the same numbers are returned. The difference is that the R-log-likelihood-function returns degrees of freedom which our model does not.
+> \textcolor{blue}{When checking our function with the logLik, the same numbers are returned as with our loglik function. The difference is that the R-log-likelihood-function returns degrees of freedom which our model does not.
 The likelihood-function returns a value of 0 which is surprising. There are no decimals — so the number is probably just extremely small and not entirely 0.
-**The log-likelihood is better because some probability distributions are only logarithmically concave.** And furthermore, this computer is not precise enough to show the exact value.
+*The log-likelihood is better because some probability distributions are only logarithmically concave.* And furthermore, this computer is not precise enough to show the exact value.}
 
 ### 5.1.iv. 
 Now show that the log-likelihood is a little off when applied to the partial pooling model - (the likelihood function is different for the multilevel function - see section 2.1 of https://www.researchgate.net/profile/Douglas-Bates/publication/2753537_Computational_Methods_for_Multilevel_Modelling/links/00b4953b4108d73427000000/Computational-Methods-for-Multilevel-Modelling.pdf if you are interested)  
 ```{r}
-
+loglik.fun(m.5.1.part, df$correct)
+logLik(m.5.1.part)
 ```
-
+> The log-likelihood function returns a higher number for the partial pooling model.
 
 ## 5.2) 
 Use log-likelihood ratio tests to argue for the addition of predictor variables, start from the null model, `glm(correct ~ 1, 'binomial', data)`, then add subject-level intercepts, then add a group-level effect of _target.frames_ and finally add subject-level slopes for _target.frames_. Also assess whether or not a correlation between the subject-level slopes and the subject-level intercepts should be included.
@@ -222,13 +223,10 @@ m.gr.ef <- glmer(correct ~ target.frames + (1 | subject), family = "binomial", d
 
 ### 5.2.i. 
 Write a short methods section and a results section where you indicate which model you chose and the statistics relevant for that choice. Include a plot of the estimated group-level function with `xlim=c(0, 8)` that includes the estimated subject-specific functions.
-```{r}
 
-# We are waiting to write and plot this until we're sure about the models
+> According to the logLik-tests, adding the most predictor variables results in the best model (ie. the model explaining the most data).
+An interaction for the subject-level slopes and intercepts should be modelled — this is seen as the fourth model explains most of the data (according to the highest log-likelihood ratio).
 
-
-
-```
     
 ### 5.2.ii. 
 Also include in the results section whether the fit didn't look good for any of the subjects. If so, identify those subjects in the report, and judge (no statistical test) whether their performance (accuracy) differed from that of the other subjects. Was their performance better than chance? (Use a statistical test this time) (50 %)  
