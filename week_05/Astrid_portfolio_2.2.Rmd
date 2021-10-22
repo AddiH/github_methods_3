@@ -141,14 +141,14 @@ Describe how the _target.contrast_ and _target.frames_ variables differ compared
 Target frames varies between 1 and 6, in experiment 2 they were all 3. Explains for how many frames (11.8 ms per frame) the target was shown}
 
 # EXERCISE 5 
-# HELP 
+# I maybe did it?
 Use log-likelihood ratio tests to evaluate logistic regression models
 
 ## 5.1) 
 Do logistic regression - _correct_ as the dependent variable and _target.frames_ as the independent variable. (Make sure that you understand what _target.frames_ encode). Create two models - a pooled model and a partial-pooling model. The partial-pooling model should include a subject-specific intercept.  
 ```{r}
-m.5.1.pool <- glm(correct ~ target.frames, df, family = "binomial")
-m.5.1.part <- glmer(correct ~ target.frames + (1 | subject), df, family = "binomial") #@ do we need to add link logit
+m1.pool <- glm(correct ~ target.frames, df, family = "binomial")
+m1.part <- glmer(correct ~ target.frames + (1 | subject), df, family = "binomial") #@ do we need to add link logit
 ```
 
 
@@ -177,9 +177,9 @@ loglik.fun <- function(model, y){
 ### 5.1.iii. 
 Apply both functions to the pooling model you just created. Make sure that the log-likelihood matches what is returned from the _logLik_ function for the pooled model. Does the likelihood-function return a value that is surprising? Why is the log-likelihood preferable when working with computers with limited precision?  
 ```{r}
-lik.fun(m.5.1.pool, df$correct)
-loglik.fun(m.5.1.pool, df$correct)
-logLik(m.5.1.pool)
+lik.fun(m1.pool, df$correct)
+loglik.fun(m1.pool, df$correct)
+logLik(m1.pool)
 ```
 > \textcolor{blue}{When checking our function with the logLik, the same numbers are returned as with our loglik function. The difference is that the R-log-likelihood-function returns degrees of freedom which our model does not.
 The likelihood-function returns a value of 0 which is surprising. There are no decimals — so the number is probably just extremely small and not entirely 0.
@@ -189,8 +189,8 @@ The likelihood-function returns a value of 0 which is surprising. There are no d
 ### 5.1.iv. 
 Now show that the log-likelihood is a little off when applied to the partial pooling model - (the likelihood function is different for the multilevel function - see section 2.1 of https://www.researchgate.net/profile/Douglas-Bates/publication/2753537_Computational_Methods_for_Multilevel_Modelling/links/00b4953b4108d73427000000/Computational-Methods-for-Multilevel-Modelling.pdf if you are interested)  
 ```{r}
-loglik.fun(m.5.1.part, df$correct)
-logLik(m.5.1.part)
+loglik.fun(m1.part, df$correct)
+logLik(m1.part)
 ```
 > \textcolor{blue}{The log-likelihood function returns a higher number for the partial pooling model.}
 
@@ -199,19 +199,19 @@ Use log-likelihood ratio tests to argue for the addition of predictor variables,
 ```{r}
 
 # start from the null model
-nullmodel       <- glm(correct ~ 1, family = binomial, df)
+m2 <- glm(correct ~ 1, family = binomial, df)
 
 # add subject-level intercepts
-sub.intercept   <- glmer(correct ~ 1 + (1 | subject), family = binomial, df)
+m3 <- glmer(correct ~ 1 + (1 | subject), family = binomial, df)
 
 # add a group-level effect of _target.frames_
-group.effect    <- glmer(correct ~ target.frames + (1 | subject), family = binomial, df)
+m4 <- glmer(correct ~ target.frames + (1 | subject), family = binomial, df)
 
 # add subject-level slopes for _target.frames_
-sub.slope       <- glmer(correct ~ target.frames + (target.frames || subject), family = binomial, df)
+m5 <- glmer(correct ~ target.frames + (target.frames || subject), family = binomial, df)
 
 # model correlation between the subject-level slopes and the subject-level intercepts
-sub.interaction <- glmer(correct ~ target.frames + (target.frames | subject), family = binomial, df)
+m6 <- glmer(correct ~ target.frames + (target.frames | subject), family = binomial, df)
 
 ```
 
@@ -224,15 +224,15 @@ Write a short methods section and a results section where you indicate which mod
 #@ why tf will it not run if the nullmodel is the first one in the string?????
 #@ also, need to talk through the anova() function
 #@ and, the whole | and || thingy
-text <- c( "sub.intercept", "nullmodel", "group.effect", "sub.slope", "sub.interaction")
+text <- c("m3", "m2", "m4", "m5", "m6")
 formula <- c("correct ~ 1 + (1 | subject)", "correct ~ 1", "(correct ~ target.frames + (1 | subject)", "(correct ~ target.frames + (target.frames || subject)", "(correct ~ target.frames + (target.frames | subject)" )
-values <- anova(sub.intercept, nullmodel, group.effect, sub.slope, sub.interaction)$logLik
+values <- anova(m3, m2, m4, m5, m6)$logLik
 as_tibble(cbind(text, formula, values))
 
 #@ is this the plot he wants?????
 df %>% 
   ggplot() + 
-  geom_point(aes(x = target.frames, y = fitted(sub.interaction), color = subject)) +
+  geom_point(aes(x = target.frames, y = fitted(m6), color = subject)) +
   xlim(0, 8)
   
 ```
@@ -247,32 +247,54 @@ Also include in the results section whether the fit didn't look good for any of 
 #@ is this the plot he wants?????
 df %>% 
   ggplot() + 
-  geom_point(aes(x = target.frames, y = fitted(sub.interaction), color = subject)) +
+  geom_point(aes(x = target.frames, y = fitted(m6), color = subject)) +
   xlim(0, 8) +
   facet_wrap(~subject) +
-  geom_point(y=correct)
+  theme_bw()
 ```
 
-> \textcolor{blue}{We can't even run our models. Are they wrong?}
+> \textcolor{blue}{Subject 24's estimated accuracy seem to increase steadily by target.frames, unlike most other subjects who's estimated accuracy increases steeply and then tapers off. Other subjects (4, 12, 14) seem to have similar tendencies, although not as noticably as 24.} #@ Anja help me' spelling
+
+```{r}
+df %>% 
+  filter(subject == "24") %>% 
+  group_by(target.frames) %>% 
+  count(correct)
+```
+
 
 ## 5.3) 
 Now add _pas_ to the group-level effects - if a log-likelihood ratio test justifies this, also add the interaction between _pas_ and _target.frames_ and check whether a log-likelihood ratio test justifies this  
 ```{r}
+m6.plus.pas <- glmer(correct ~ target.frames + pas + (target.frames | subject), family = binomial, df)
+m6.interaction.pas <- glmer(correct ~ target.frames * pas + (target.frames | subject), family = binomial, df)
+
+text <- c("m6.plus.pas", "m6", "m6.interaction.pas")
+formula <- c("(correct ~ target.frames + pas + (target.frames | subject)", "(correct ~ target.frames + (target.frames | subject)", "(correct ~ target.frames * pas + (target.frames | subject)")
+values <- anova(m6.plus.pas, m6, m6.interaction.pas)$logLik
+as_tibble(cbind(text, formula, values))
 
 ```
-
+ #@ again, tf is up with the order of the anova?
+ 
+ > \textcolor{blue}{log-likelihood ratio test justifies adding pas, and confirms that adding pas as an interaction is the better option}
+ 
+ 
 ### 5.3.i. 
 If your model doesn't converge, try a different optimizer  
-```{r}
-
-```
   
 ### 5.3.ii.
 Plot the estimated group-level functions over `xlim=c(0, 8)` for each of the four PAS-ratings - add this plot to your report (see: 5.2.i) and add a description of your chosen model. Describe how _pas_ affects accuracy together with target duration if at all. Also comment on the estimated functions' behaviour at target.frame=0 - is that behaviour reasonable?  
 ```{r}
-
+df %>% 
+  ggplot() + 
+  geom_point(aes(x = target.frames, y = fitted(m6.interaction.pas), color = pas)) +
+  xlim(0, 8) +
+  facet_wrap(~pas) +
+  theme_bw()
 ```
-  
+ > \textcolor{blue}{As seen by the plot, target.frames increases acccuracy, except for pas 1, where the mean accuracy looks similar accros target.frames. Pas also increases accuracy, and thus the combination most likely to give a correct answer is Pas 4 with target.frames 6. The likelihood of being correct at target.frames = 0 is not estimated, this is appropriate as this would mean not showing the subjects the target at all.}
+
 # EXERCISE 6 
 # Just need to figure out the matrix(c(0, 0, 0, 0, 0, 1, 0, 0) thing is
 Test linear hypotheses
