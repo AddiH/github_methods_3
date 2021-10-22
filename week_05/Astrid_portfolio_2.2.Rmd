@@ -213,25 +213,46 @@ sub.slope       <- glmer(correct ~ target.frames + (target.frames || subject), f
 # model correlation between the subject-level slopes and the subject-level intercepts
 sub.interaction <- glmer(correct ~ target.frames + (target.frames | subject), family = binomial, df)
 
-#@ why tf will it not run if the nullmodel is the first one in the string?????
-#@ also, need to talk through the anova() function
-#@ and, the whole | and || thingy
-text <- c( "sub.intercept", "nullmodel", "group.effect", "sub.slope", "sub.interaction")
-formula <- c("correct ~ 1 + (1 | subject)", "correct ~ 1", "(correct ~ target.frames + (1 | subject)", "(correct ~ target.frames + (target.frames || subject)", "(correct ~ target.frames + (target.frames | subject)" )
-values <- anova(sub.intercept, nullmodel, group.effect, sub.slope, sub.interaction)$logLik
-as.tibble(cbind(text, formula, values))
-
 ```
 
 
 ### 5.2.i. 
 Write a short methods section and a results section where you indicate which model you chose and the statistics relevant for that choice. Include a plot of the estimated group-level function with `xlim=c(0, 8)` that includes the estimated subject-specific functions.
 
+```{r}
+
+#@ why tf will it not run if the nullmodel is the first one in the string?????
+#@ also, need to talk through the anova() function
+#@ and, the whole | and || thingy
+text <- c( "sub.intercept", "nullmodel", "group.effect", "sub.slope", "sub.interaction")
+formula <- c("correct ~ 1 + (1 | subject)", "correct ~ 1", "(correct ~ target.frames + (1 | subject)", "(correct ~ target.frames + (target.frames || subject)", "(correct ~ target.frames + (target.frames | subject)" )
+values <- anova(sub.intercept, nullmodel, group.effect, sub.slope, sub.interaction)$logLik
+as_tibble(cbind(text, formula, values))
+
+#@ is this the plot he wants?????
+df %>% 
+  ggplot() + 
+  geom_point(aes(x = target.frames, y = fitted(sub.interaction), color = subject)) +
+  xlim(0, 8)
+  
+```
+
+
 > \textcolor{blue}{The best model is (correct ~ target.frames + (target.frames | subject), as it has the value closest to 0.}
 
     
 ### 5.2.ii. 
 Also include in the results section whether the fit didn't look good for any of the subjects. If so, identify those subjects in the report, and judge (no statistical test) whether their performance (accuracy) differed from that of the other subjects. Was their performance better than chance? (Use a statistical test this time) (50 %)  
+```{r}
+#@ is this the plot he wants?????
+df %>% 
+  ggplot() + 
+  geom_point(aes(x = target.frames, y = fitted(sub.interaction), color = subject)) +
+  xlim(0, 8) +
+  facet_wrap(~subject) +
+  geom_point(y=correct)
+```
+
 > \textcolor{blue}{We can't even run our models. Are they wrong?}
 
 ## 5.3) 
