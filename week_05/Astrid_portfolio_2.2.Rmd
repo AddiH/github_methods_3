@@ -305,7 +305,7 @@ We want to test a hypothesis for each of the three neighbouring differences in P
 ## 6.1) 
 Fit a model based on the following formula: `correct ~ pas * target.frames + (target.frames | subject))`
 ```{r}
-m.6.1 <- glmer(correct ~ pas * target.frames + (target.frames | subject), 
+m7 <- glmer(correct ~ pas * target.frames + (target.frames | subject), 
                family = "binomial", df)
 ```
     
@@ -314,10 +314,10 @@ First, use `summary` (yes, you are allowed to!) to argue that accuracy increases
 ```{r}
 df %>% 
   ggplot() + 
-  geom_point(aes(x = target.frames, y = fitted(m.6.1), color = pas))+
+  geom_point(aes(x = target.frames, y = fitted(m7), color = pas))+
   facet_wrap( ~ pas)
 
-summary(m.6.1)
+summary(m7)
 ```
 > \textcolor{blue}{
 Reading "objective evidence" as the duration (target.frames) we have plotted the liklihood of answering correctly on targetframes, for each pas. This makes it obvious that the likelihood of being correct increases for PAS 2 as the target.frames increases, whereas PAS 1 seem to have around the same mean regardless of target.frames.
