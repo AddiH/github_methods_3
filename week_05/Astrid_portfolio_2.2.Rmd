@@ -395,7 +395,7 @@ RSS <- function(data, par)
     x <- data$x
     y <- data$y
     
-    y.hat <- a + ((b-a) / (1+exp((c-x)/(d)))) #@ this feels right? is e <- exp(1)?
+    y.hat <- a + ((b-a) / (1+exp((c-x)/(d))))
    
     RSS <- sum((y - y.hat)^2)
     return(RSS)
@@ -506,6 +506,20 @@ Create a similar plot for the PAS ratings on a single plot (for subject 7), but 
 Comment on the differences between the fits - mention some advantages and disadvantages of each way  
 ## 7.2) 
 Finally, estimate the parameters for all subjects and each of their four PAS ratings. Then plot the estimated function at the group-level by taking the mean for each of the four parameters, _a_, _b_, _c_ and _d_ across subjects. A function should be estimated for each PAS-rating (it should look somewhat similar to Fig. 3 from the article:  https://doi.org/10.1016/j.concog.2019.03.007)
+```{r}
+sub7.pas3 <- df %>% 
+  filter(subject == "7" & pas == "3") %>% 
+  mutate(x = target.frames, y = correct)
+
+loop.df <- df %>% 
+  mutate(x = target.frames, y = correct) %>% 
+  subject()
+
+for (i in 1:29) {
+  subjectdf <- df %>% 
+}
+```
+
 ### 7.2.i. 
 Compare with the figure you made in 5.3.ii and comment on the differences between the fits - mention some advantages and disadvantages of both.
     
