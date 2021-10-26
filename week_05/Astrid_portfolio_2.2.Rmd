@@ -635,7 +635,7 @@ mean.fit.pas4 <- function(x) summarised.output$mean.a[4] + ((summarised.output$m
   geom_function(aes(color = "pas3"), fun = mean.fit.pas3) +
   geom_function(aes(color = "pas4"), fun = mean.fit.pas4) +
   labs(x = "target.frames", y = "Likelihood of being correct", title = "Title") +
-  theme_minimal()
+  theme_minimal() 
 ```
 
 ### 7.2.i. 
