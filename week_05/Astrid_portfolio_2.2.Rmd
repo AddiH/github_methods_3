@@ -221,13 +221,15 @@ Write a short methods section and a results section where you indicate which mod
 
 ```{r}
 
-#@ why tf will it not run if the nullmodel is the first one in the string?????
+#@ why tf will it not run if the nullmodel is the first one in the string????? #Lau says the function fits how to analyse based on the first model (nullmodel is glm the rest is glmer) so it gets fuked uup
 #@ also, need to talk through the anova() function
 #@ and, the whole | and || thingy
-text <- c("m3", "m2", "m4", "m5", "m6")
-formula <- c("correct ~ 1 + (1 | subject)", "correct ~ 1", "(correct ~ target.frames + (1 | subject)", "(correct ~ target.frames + (target.frames || subject)", "(correct ~ target.frames + (target.frames | subject)" )
+text <- c("m2", "m3", "m4", "m5", "m6")
+formula <- c("correct ~ 1", "correct ~ 1 + (1 | subject)", "(correct ~ target.frames + (1 | subject)", "(correct ~ target.frames + (target.frames || subject)", "(correct ~ target.frames + (target.frames | subject)" )
 values <- anova(m3, m2, m4, m5, m6)$logLik
 as_tibble(cbind(text, formula, values))
+
+anova(m3, m2, m4, m5, m6)
 
 #@ is this the plot he wants?????
 df %>% 
@@ -250,6 +252,14 @@ df %>%
   geom_point(aes(x = target.frames, y = fitted(m6), color = subject)) +
   xlim(0, 8) +
   facet_wrap(~subject) +
+  theme_bw()
+
+#@ is this the plot he wants?????
+df %>% 
+  ggplot() + 
+  geom_point(aes(x = target.frames, y = fitted(m6), color = subject)) +
+  xlim(0, 8) +
+  #facet_wrap(~subject) +
   theme_bw()
 ```
 
