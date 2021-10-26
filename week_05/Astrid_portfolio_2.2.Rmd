@@ -334,11 +334,72 @@ multcomp::glht(m7)
 
 #@ -1 is the beta hat we want to compare from (baseline). 1 is the estimate we want to compare to.
 # Changing what is baseline and what is being compared to is just changing the sign (fortegn).
+
+
 ```
 
 ### 6.2.i. 
 To redo the test in 6.1.i, you can create a _contrast_ vector. This vector will have the length of the number of estimated group-level effects and any specific contrast you can think of can be specified using this. For redoing the test from 6.1.i, the code snippet below will do.
+
 ```{r}
+# from 6.1.i: argue that accuracy increases faster with objective evidence for PAS 2 than for PAS 1. 
+contrast.vector <- matrix(c(0, #(Intercept)
+                            0, #pas2
+                            0, #pas3
+                            0, #pas4
+                            0, #target.frames
+                            1, #pas2:target.frames
+                            0, #pas3:target.frames
+                            0),#pas4:target.frames
+                          nrow=1)
+gh <- glht(m7, contrast.vector)
+print(summary(gh))
+
+```
+
+> > \textcolor{blue}{very nice but I don't know what is going on, or how to read it}
+
+### 6.2.ii. 
+Now test the hypothesis that accuracy increases faster with objective evidence for PAS 3 than for PAS 2.
+```{r}
+contrast.vector <- matrix(c(0, #(Intercept)
+                            0, #pas2
+                            0, #pas3
+                            0, #pas4
+                            0, #target.frames
+                            1, #pas2:target.frames
+                            -1, #pas3:target.frames
+                            0),#pas4:target.frames
+                          nrow=1)
+gh <- glht(m7, contrast.vector)
+print(summary(gh))
+```
+
+### 6.2.iii. 
+Also test the hypothesis that accuracy increases faster with objective evidence for PAS 4 than for PAS 3
+```{r}
+contrast.vector <- matrix(c(0, #(Intercept)
+                            0, #pas2
+                            0, #pas3
+                            0, #pas4
+                            0, #target.frames
+                            0, #pas2:target.frames
+                            1, #pas3:target.frames
+                            -1),#pas4:target.frames
+                          nrow=1)
+gh <- glht(m7, contrast.vector)
+print(summary(gh))
+```
+
+## 6.3) 
+Finally, test that whether the difference between PAS 2 and 1 (tested in 6.1.i) is greater than the difference between PAS 4 and 3 (tested in 6.2.iii)
+```{r}
+
+```
+
+
+```{r}
+#Laus code snippet
 ## testing whether PAS 2 is different from PAS 1
 contrast.vector <- matrix(c(0, 0, 0, 0, 0, 1, 0, 0), nrow=1)
 gh <- glht(m7, contrast.vector)
@@ -350,24 +411,6 @@ gh <- glht(m7, contrast.vector)
 print(summary(gh))
 
 ```
-> > \textcolor{blue}{very nice but I don't know what is going on, or how to read it}
-
-### 6.2.ii. 
-Now test the hypothesis that accuracy increases faster with objective evidence for PAS 3 than for PAS 2.
-```{r}
-#@ I assume this can be achived by chaning some of the 0 and 1 in the code and running it again, but which ones tho.
-```
-
-### 6.2.iii. 
-Also test the hypothesis that accuracy increases faster with objective evidence for PAS 4 than for PAS 3
-
-
-## 6.3) 
-Finally, test that whether the difference between PAS 2 and 1 (tested in 6.1.i) is greater than the difference between PAS 4 and 3 (tested in 6.2.iii)
-```{r}
-
-```
-
 
 # EXERCISE 7 
 # Maybe fucked up, maybe nailed it
@@ -490,7 +533,7 @@ fit.pas4 <- function(x) optim.sub7.pas4$par[1] + ((optim.sub7.pas4$par[2]-optim.
  ggplot() +
   xlim(0, 8) +
   ylim(0, 1) +
-  geom_function(aes(colour = "pas1"), fun = fit.pas1) +
+  geom_function(aes(colour = "pas1"),fun = fit.pas1) +
   geom_function(aes(colour = "pas2"),fun = fit.pas2) +
   geom_function(aes(colour = "pas3"),fun = fit.pas3) +
   geom_function(aes(colour = "pas4"),fun = fit.pas4) +
@@ -551,6 +594,38 @@ for (i in 1:29) {
   output <- rbind(output, optimated.output)
 }
 }
+```
+
+```{r}
+summarised.output <- output %>% 
+  group_by(pas) %>% 
+  summarise(mean.a=mean(a), mean.b=mean(b), mean.c=mean(c), mean.d=mean(d))
+```
+
+
+```{r}
+
+#@ Weeeellll, this is ugly af, but it is just the formula for the sigmoid, with the optimized parameters that we found before
+mean.fit.pas1 <- function(x) summarised.output$mean.a[1] + ((summarised.output$mean.b[1]-summarised.output$mean.a[1]) / (1+exp((summarised.output$mean.c[1]-x)/(summarised.output$mean.d[1]))))
+
+mean.fit.pas2 <- function(x) summarised.output$mean.a[2] + ((summarised.output$mean.b[2]-summarised.output$mean.a[2]) / (2+exp((summarised.output$mean.c[2]-x)/(summarised.output$mean.d[2]))))
+
+mean.fit.pas3 <- function(x) summarised.output$mean.a[3] + ((summarised.output$mean.b[3]-summarised.output$mean.a[3]) / (3+exp((summarised.output$mean.c[3]-x)/(summarised.output$mean.d[3]))))
+
+mean.fit.pas4 <- function(x) summarised.output$mean.a[4] + ((summarised.output$mean.b[4]-summarised.output$mean.a[4]) / (4+exp((summarised.output$mean.c[4]-x)/(summarised.output$mean.d[4]))))
+
+```
+
+```{r}
+ ggplot() +
+  xlim(0, 8) +
+  ylim(0, 1) +
+  geom_function(aes(color = "pas1"), fun = mean.fit.pas1) +
+  geom_function(aes(color = "pas2"), fun = mean.fit.pas2) +
+  geom_function(aes(color = "pas3"), fun = mean.fit.pas3) +
+  geom_function(aes(color = "pas4"), fun = mean.fit.pas4) +
+  labs(x = "target.frames", y = "Likelihood of being correct", title = "Title") +
+  theme_minimal()
 ```
 
 ### 7.2.i. 
