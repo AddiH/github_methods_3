@@ -507,16 +507,49 @@ Comment on the differences between the fits - mention some advantages and disadv
 ## 7.2) 
 Finally, estimate the parameters for all subjects and each of their four PAS ratings. Then plot the estimated function at the group-level by taking the mean for each of the four parameters, _a_, _b_, _c_ and _d_ across subjects. A function should be estimated for each PAS-rating (it should look somewhat similar to Fig. 3 from the article:  https://doi.org/10.1016/j.concog.2019.03.007)
 ```{r}
-sub7.pas3 <- df %>% 
-  filter(subject == "7" & pas == "3") %>% 
-  mutate(x = target.frames, y = correct)
+par <- c(0.5, 1, 1, 1)
+fn <- RSS
+method = 'L-BFGS-B'
+lower = c(0.5, 0.5, -Inf, -Inf)
+upper = c(1, 1, Inf, Inf)
 
 loop.df <- df %>% 
-  mutate(x = target.frames, y = correct) %>% 
-  subject()
+  mutate(x = target.frames, 
+         y = correct, 
+         subject = as.numeric(subject),
+         pas = as.numeric(pas))
+
+n <- 0
+
+output <- data.frame(subject=character(),
+                 pas=integer(),
+                 a=integer(),
+                 b=integer(),
+                 c=integer(),
+                 d=integer())
 
 for (i in 1:29) {
-  subjectdf <- df %>% 
+  
+  for (n in 1:4) {
+  subject.df <- loop.df %>% 
+    filter(subject == i & pas == n)
+  
+  optimated <- optim(par = par, 
+                     data = subject.df,  
+                     fn = fn, 
+                     method = method, 
+                     lower = lower, 
+                     upper =  upper)
+  
+  optimated.output <- data.frame(subject=i,
+                 pas=n,
+                 a=optimated$par[1],
+                 b=optimated$par[2],
+                 c=optimated$par[3],
+                 d=optimated$par[4])
+  
+  
+}
 }
 ```
 
