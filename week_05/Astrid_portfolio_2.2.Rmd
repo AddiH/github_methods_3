@@ -331,6 +331,9 @@ pas2:target.frames  0.44719    0.03475  12.869  < 2e-16 ***
 ```{r}
 multcomp::glht(m.6.1)
 #@ this is identical to the summary()? Surely that is not the point?
+
+#@ -1 is the beta hat we want to compare from (baseline). 1 is the estimate we want to compare to.
+# Changing what is baseline and what is being compared to is just changing the sign (fortegn).
 ```
 
 ### 6.2.i. 
@@ -345,6 +348,7 @@ print(summary(gh))
 contrast.vector <- matrix(c(0, -1, 1, 0, 0, 0, 0, 0), nrow=1)
 gh <- glht(m.6.1, contrast.vector)
 print(summary(gh))
+
 ```
 > > \textcolor{blue}{very nice but I don't know what is going on, or how to read it}
 
@@ -388,23 +392,22 @@ RSS <- function(data, par)
     c <- par[3]
     d <- par[4]
     
-    e <- exp(1)
-    
     x <- data$x
     y <- data$y
     
-    y.hat <- a + ((b-a) / (1+e*((c-x)/(d)))) #@ this feels right? is e <- exp(1)?
+    y.hat <- a + ((b-a) / (1+exp((c-x)/(d)))) #@ this feels right? is e <- exp(1)?
    
     RSS <- sum((y - y.hat)^2)
     return(RSS)
 }
+
 ```
 
 
 ## 7.1) 
 Now, we will fit the sigmoid for the four PAS ratings for Subject 7
 ```{r}
-par <- c(1, 1, 1, 1)
+par <- c(0.5, 0.5, Inf, Inf)
 
 sub7.pas1 <- df %>% 
   filter(subject == "7" & pas == "1") %>% 
@@ -444,19 +447,21 @@ Use the function `optim`. It returns a list that among other things contains the
 #@ I am not into this "guess the number game". I have about -0.938 intuition on what number to guess.
 
 # for data argument, choose between sub7.pas1, -2, -3 and -4.
-par <- c(0.1, 5, 1, 1)
+par <- c(0.5, 1, 1, 1)
     # a, the minimum accuracy level is set to 0,1 because being accurate is important, and we probably want it to be low?
     # b, the maximum accuracy level is set to 5, because I believe in being 5 accurate #voteastridforpresident
 
 #fn <- data$y == par[1] + ((par[2]-par[1]) / (1+exp(1)*((par[3]-data$x)/(par[4]))))
 fn <- RSS
 method = 'L-BFGS-B'
-lower = c(-5, 0, -Inf, -Inf)
+lower = c(0.5, 0.5, -Inf, -Inf)
 # a, the minimum accuracy level is set to -5 because being accurate is important, and we probably        want it to be low?
     # b, the maximum accuracy level is set to Inf, because i believe in being infinitely accurate
-upper = c(0.1, Inf, Inf, Inf)
+upper = c(1, 1, Inf, Inf)
     # a, the minimum accuracy level is set to 0,1 because being accurate is important, and we probably        want it to be low?
     # b, the maximum accuracy level is set to Inf, because i believe in being infinitely accurate
+
+# Even when just guessing on chance you have (Target frames = 0) you still have 50% of being right. You cannot get higher than 100% (1) probability of being right
 
 optim.sub7.pas1 <- optim(par = par, data = sub7.pas1,  fn = fn, method = method, lower = lower, upper = upper)
 optim.sub7.pas2 <- optim(par = par, data = sub7.pas2,  fn = fn, method = method, lower = lower, upper = upper)
@@ -471,19 +476,20 @@ Plot the fits for the PAS ratings on a single plot (for subject 7) `xlim=c(0, 8)
 ```{r}
 
 #@ Weeeellll, this is ugly af, but it is just the formula for the sigmoid, with the optimized parameters that we found before
-fit.pas1 <- function(x) optim.sub7.pas1$par[1] + ((optim.sub7.pas1$par[2]-optim.sub7.pas1$par[1]) / (1+exp(1)*((optim.sub7.pas1$par[3]-x)/(optim.sub7.pas1$par[4]))))
+fit.pas1 <- function(x) optim.sub7.pas1$par[1] + ((optim.sub7.pas1$par[2]-optim.sub7.pas1$par[1]) / (1+exp((optim.sub7.pas1$par[3]-x)/(optim.sub7.pas1$par[4]))))
 
-fit.pas2 <- function(x) optim.sub7.pas2$par[1] + ((optim.sub7.pas2$par[2]-optim.sub7.pas2$par[1]) / (1+exp(1)*((optim.sub7.pas2$par[3]-x)/(optim.sub7.pas2$par[4]))))
+fit.pas2 <- function(x) optim.sub7.pas2$par[1] + ((optim.sub7.pas2$par[2]-optim.sub7.pas2$par[1]) / (1+exp((optim.sub7.pas2$par[3]-x)/(optim.sub7.pas2$par[4]))))
 
-fit.pas3 <- function(x) optim.sub7.pas3$par[1] + ((optim.sub7.pas3$par[2]-optim.sub7.pas3$par[1]) / (1+exp(1)*((optim.sub7.pas3$par[3]-x)/(optim.sub7.pas3$par[4]))))
+fit.pas3 <- function(x) optim.sub7.pas3$par[1] + ((optim.sub7.pas3$par[2]-optim.sub7.pas3$par[1]) / (1+exp((optim.sub7.pas3$par[3]-x)/(optim.sub7.pas3$par[4]))))
 
-fit.pas4 <- function(x) optim.sub7.pas4$par[1] + ((optim.sub7.pas4$par[2]-optim.sub7.pas4$par[1]) / (1+exp(1)*((optim.sub7.pas4$par[3]-x)/(optim.sub7.pas4$par[4]))))
+fit.pas4 <- function(x) optim.sub7.pas4$par[1] + ((optim.sub7.pas4$par[2]-optim.sub7.pas4$par[1]) / (1+exp((optim.sub7.pas4$par[3]-x)/(optim.sub7.pas4$par[4]))))
 
 ```
 
 ```{r}
  ggplot() +
   xlim(0, 8) +
+  ylim(0, 1) +
   geom_function(aes(colour = "pas1"), fun = fit.pas1) +
   geom_function(aes(colour = "pas2"),fun = fit.pas2) +
   geom_function(aes(colour = "pas3"),fun = fit.pas3) +
@@ -494,7 +500,8 @@ fit.pas4 <- function(x) optim.sub7.pas4$par[1] + ((optim.sub7.pas4$par[2]-optim.
 >  \textcolor{blue}{Do I know that any of this is correct? No, but I assume it is not.} 
 
 ### 7.1.iii. 
-Create a similar plot for the PAS ratings on a single plot (for subject 7), but this time based on the model from 6.1 `xlim=c(0, 8)`   
+Create a similar plot for the PAS ratings on a single plot (for subject 7), but this time based on the model from 6.1 `xlim=c(0, 8)´ 
+
 ### 7.1.iv. 
 Comment on the differences between the fits - mention some advantages and disadvantages of each way  
 ## 7.2) 
