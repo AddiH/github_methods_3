@@ -329,7 +329,7 @@ pas2:target.frames  0.44719    0.03475  12.869  < 2e-16 ***
 ## 6.2) 
 `summary` won't allow you to test whether accuracy increases faster with objective evidence for PAS 3 than for PAS 2 (unless you use `relevel`, which you are not allowed to in this exercise). Instead, we'll be using the function `glht` from the `multcomp` package
 ```{r}
-multcomp::glht(m.6.1)
+multcomp::glht(m7)
 #@ this is identical to the summary()? Surely that is not the point?
 
 #@ -1 is the beta hat we want to compare from (baseline). 1 is the estimate we want to compare to.
@@ -341,12 +341,12 @@ To redo the test in 6.1.i, you can create a _contrast_ vector. This vector will 
 ```{r}
 ## testing whether PAS 2 is different from PAS 1
 contrast.vector <- matrix(c(0, 0, 0, 0, 0, 1, 0, 0), nrow=1)
-gh <- glht(m.6.1, contrast.vector)
+gh <- glht(m7, contrast.vector)
 print(summary(gh))
 ## as another example, we could also test whether there is a difference in
 ## intercepts between PAS 2 and PAS 3
 contrast.vector <- matrix(c(0, -1, 1, 0, 0, 0, 0, 0), nrow=1)
-gh <- glht(m.6.1, contrast.vector)
+gh <- glht(m7, contrast.vector)
 print(summary(gh))
 
 ```
@@ -548,7 +548,7 @@ for (i in 1:29) {
                  c=optimated$par[3],
                  d=optimated$par[4])
   
-  
+  output <- rbind(output, optimated.output)
 }
 }
 ```
