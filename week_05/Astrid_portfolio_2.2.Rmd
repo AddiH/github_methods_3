@@ -13,7 +13,7 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-pacman::p_load(tidyverse, readbulk, lme4, interactions, multcomp, GMCM)
+pacman::p_load(tidyverse, readbulk, lme4, interactions, multcomp, GMCM, ggpubr)
 ```
 
 # Exercises and objectives
@@ -38,7 +38,6 @@ The data is associated with Experiment 1 of the article at the following DOI htt
 ## 4.1)  
 Put the data from all subjects into a single data frame - note that some of the subjects do not have the _seed_ variable. For these subjects, add this variable and make in _NA_ for all observations. (The _seed_ variable will not be part of the analysis and is not an experimental variable)  
 ```{r, message=FALSE} 
-#@ output
 df <- read_bulk('experiment_1/')
 ```
 
@@ -279,12 +278,26 @@ If your model doesn't converge, try a different optimizer
 ### 5.3.ii.
 Plot the estimated group-level functions over `xlim=c(0, 8)` for each of the four PAS-ratings - add this plot to your report (see: 5.2.i) and add a description of your chosen model. Describe how _pas_ affects accuracy together with target duration if at all. Also comment on the estimated functions' behaviour at target.frame=0 - is that behaviour reasonable?  
 ```{r}
-df %>% 
+# df %>% ggplot(aes(x = target.frames, y = fitted.values(m6.interaction.pas), color = pas)) + 
+#   xlim(c(0,8))+
+#   geom_line() +
+#   theme_minimal()
+
+d <- interactions::interact_plot(model = m6.interaction.pas, pred = "target.frames", modx = "pas")
+d
+
+```
+
+
+
+```{r}
+d <- df %>% 
   ggplot() + 
   geom_point(aes(x = target.frames, y = fitted(m6.interaction.pas), color = pas)) +
   xlim(0, 8) +
   facet_wrap(~pas) +
   theme_bw()
+d
 ```
  > \textcolor{blue}{The model we chose is (correct ~ target.frames * pas + (target.frames | subject). As seen by the plot, target.frames increases acccuracy, except for pas 1, where the mean accuracy looks similar accros target.frames. Pas also increases accuracy, and thus the combination most likely to give a correct answer is Pas 4 with target.frames 6. The likelihood of being correct at target.frames = 0 is not estimated, this is appropriate as this would mean not showing the subjects the target at all.}
  
@@ -485,7 +498,7 @@ fit.pas4 <- function(x) optim.sub7.pas4$par[1] + ((optim.sub7.pas4$par[2]-optim.
 ```
 
 ```{r}
- ggplot() +
+a <-  ggplot() +
   xlim(0, 8) +
   ylim(0, 1) +
   geom_function(aes(colour = "pas1"),fun = fit.pas1) +
@@ -494,6 +507,7 @@ fit.pas4 <- function(x) optim.sub7.pas4$par[1] + ((optim.sub7.pas4$par[2]-optim.
   geom_function(aes(colour = "pas4"),fun = fit.pas4) +
   labs(x = "target.frames", y = "Likelihood of being correct", title = "Subject 7") +
   theme_minimal()
+a
 ```
 
 ### 7.1.iii. 
@@ -505,20 +519,27 @@ new.data <- data.frame(cbind('target.frames' = seq(0, 8, by = 0.001), "pas" = re
 new.data$subject <- as.factor(new.data$subject)
 new.data$pas <- as.factor(new.data$pas)
 new.data$target.frames <- as.numeric(new.data$target.frames)
-new.data$est.y <- predict(m7, newdata = new.data, type = "response")
+new.data$est.y <- predict(m7, newdata = new.data, type = "response") 
 
-ggplot(new.data) + 
+b <- ggplot(new.data) + 
   geom_line(aes(x = target.frames, y = est.y, color = pas)) +
   xlim(c(0,8)) +
   ylim(c(0,1)) +
-  labs(y = "Fitted correct", x = "Target Frames") +
+  labs(y = "Fitted correct", x = "Target Frames", title = "Subject 7") +
   theme_bw()
+b
 ```
 
-> \textcolor{blue}{We start with creating a new data frame. The 'target frames' column goes from 0-8 increasing by 0.001 given the xlim parameters. The 'pas' column repeats 1-4 in order, 'subject' all for subject 7. Lastly, we use the predict function to create a column of predictied y values based on our model (m7) and this new data frame. }
+> \textcolor{blue}{We start with creating a new data frame. The 'target frames' column goes from 0-8 increasing by 0.001 given the xlim parameters. The 'pas' column repeats 1-4 in order, 'subject' all for subject 7. Lastly, we use the predict function to create a column of predictied y values based on our model (m7) and this new data frame. The type argument ensures that predictions are as probabilities.}
 
 ### 7.1.iv. 
 Comment on the differences between the fits - mention some advantages and disadvantages of each way  
+```{r}
+ggarrange(a,b)
+```
+> \textcolor{blue}{For the first fit made with our RSS function, the prediction never moves below chance level, as we want it to. This method gives us more control over the parameters of the function. However, it might be problematic to set the parameters manually, especially if you are not a statistics expert, like we are. The second fit based on R's glmer function, the model is more complex, allowing for greater accuracy and flexibility - it is not forced into the rigid sigmoid shape. It is however problematic that the y-values dip below chance level, as this should not be possible.}
+
+
 ## 7.2) 
 Finally, estimate the parameters for all subjects and each of their four PAS ratings. Then plot the estimated function at the group-level by taking the mean for each of the four parameters, _a_, _b_, _c_ and _d_ across subjects. A function should be estimated for each PAS-rating (it should look somewhat similar to Fig. 3 from the article:  https://doi.org/10.1016/j.concog.2019.03.007)
 ```{r}
@@ -577,7 +598,6 @@ summarised.output <- output %>%
 
 ```{r}
 
-#@ Weeeellll, this is ugly af, but it is just the formula for the sigmoid, with the optimized parameters that we found before
 mean.fit.pas1 <- function(x) summarised.output$mean.a[1] + ((summarised.output$mean.b[1]-summarised.output$mean.a[1]) / (1+exp((summarised.output$mean.c[1]-x)/(summarised.output$mean.d[1]))))
 
 mean.fit.pas2 <- function(x) summarised.output$mean.a[2] + ((summarised.output$mean.b[2]-summarised.output$mean.a[2]) / (2+exp((summarised.output$mean.c[2]-x)/(summarised.output$mean.d[2]))))
@@ -589,7 +609,7 @@ mean.fit.pas4 <- function(x) summarised.output$mean.a[4] + ((summarised.output$m
 ```
 
 ```{r}
- ggplot() +
+ c <- ggplot() +
   xlim(0, 8) +
   ylim(0, 1) +
   geom_function(aes(color = "pas1"), fun = mean.fit.pas1) +
@@ -598,8 +618,14 @@ mean.fit.pas4 <- function(x) summarised.output$mean.a[4] + ((summarised.output$m
   geom_function(aes(color = "pas4"), fun = mean.fit.pas4) +
   labs(x = "target.frames", y = "Likelihood of being correct", title = "Title") +
   theme_minimal() 
+c
 ```
 
 ### 7.2.i. 
 Compare with the figure you made in 5.3.ii and comment on the differences between the fits - mention some advantages and disadvantages of both.
-    
+```{r}
+ggarrange(c,d)
+```
+
+
+> \textcolor{blue}{As before, the model based on our RSS has the advantage of always staying above chance level. However the pas 1 function declines with targetframes, which seems counterintuitve. Again, it is problematic that the estimated probability of being correct is less than 50% at target.frames = 0, however this model does not have the issue of pas 1 declining with target.frames}
