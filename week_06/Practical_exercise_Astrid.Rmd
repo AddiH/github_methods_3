@@ -31,7 +31,7 @@ library(reticulate)
 
 ```{python}
 import matplotlib.pyplot as plt
-import numpy
+import numpy as np
 ```
 
 
@@ -96,7 +96,7 @@ print(fix_my_p_value(True))
 #import np # methods of numpy can now be accessed as below
 # importing packages (similar to library)
 
-print(numpy.arange(1, 10)) # see the dot
+print(np.arange(1, 10)) # see the dot
 print(numpy.abs(-3))
 import numpy as numpy # you can import them with another name than its default
 print(numpy.cos(numpy.pi))
