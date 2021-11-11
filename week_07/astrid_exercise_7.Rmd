@@ -13,14 +13,18 @@ output: html_document
 
 ```{r}
 library(reticulate)
-options(reticulate.repl.quiet = TRUE)
+options(reticulate.repl.quiet = TRUE) #Avoid the: 
+# Python 3.9.7 (/Users/astrid/opt/miniconda3/envs/methods3/bin/python)
+# Reticulate 1.22 REPL -- A Python interpreter in R.
+# Enter 'exit' or 'quit' to exit the REPL and return to R.
 ```
-
+cmd + shift + fn + f10 to clear enviroment
 
 ```{python}
 import numpy as np
-import matplotlib as plt
+import matplotlib.pyplot as plt
 ```
+
 
 
 # Exercises and objectives
@@ -71,14 +75,12 @@ add normally distributed noise to $y$ with $\sigma=5$ (set a seed to 7 `np.rando
 np.random.seed(7)
 random_vector = np.random.normal(loc=0, scale=5, size=60)
 y_noisy = y + random_vector
-len(y_noisy) #@Why is the len 60? Whould it not be 120 when adding two vectors of len 60?
 ```
 **Rating: i** 
-**I am guessing at the size of the random_vector**
 ###1.1.iii. 
 plot the true function and the generated points 
 ```{python}
-plt.figure()
+p = plt.figure()
 plt.plot(x, y)
 plt.plot(x, y_noisy, "ro")
 plt.legend(["true function", "y_noisy"])
@@ -109,10 +111,8 @@ def fit(x):
 
 fit_y = fit(x)
 
-# Is there an easier way to continue on a plot you already made?
-plt.figure()
-plt.plot(x, y)
-plt.plot(x, y_noisy, "ro")
+#@ Is there an easier way to continue on a plot you already made?
+p
 plt.plot(x, fit_y)
 plt.legend(["true function", "y_noisy", "fitted function"])
 plt.show()
@@ -135,18 +135,35 @@ def sq_fit(x):
   y = ((a * (x ** 2)) + (b * x) + c)
   return(y)
 ```
-
+**Rating iii, i don't know what a square hat is**
 ###1.2.iii. 
 do a quadratic and a fifth order fit as well and plot them (on top of the plot from 1.2.i)
 ```{python}
+# didn't we already do the quadratic?
 quadratic = PolynomialFeatures(degree=2)
 X_quadratic = quadratic.fit_transform(x.reshape(-1, 1))
 regressor = LinearRegression()
 sq_fit = regressor.fit(x_train, y_train)
+
+quadratic = PolynomialFeatures(degree=5)
+X_quadratic = quadratic.fit_transform(x.reshape(-1, 1))
+regressor = LinearRegression()
+five_fit = regressor.fit(x_train, y_train)
 ```
 
+
+```{python}
+print(sq_fit.coef_) # I need a, b and c coef to plot like before
+print(sq_fit.intercept_)
+
+def sq_fit(x):
+  y = ((a * (x ** 2)) + (b * x) + c)
+  return(y)
+
+```
+**Rating iii, i don't know how to plot**
 ##3) 
-Simulate 100 samples, each with sample size `len(x)` with $\sigma=5$ normally distributed noise added on top of the true function    
+Simulate 100 samples, each with sample size `len(x)` with $\sigma=5$ normally distributed noise added on top of the true function 
 ###1.3.i. 
 do linear, quadratic and fifth-order fits for each of the 100 samples  
 ###1.3.ii. 
