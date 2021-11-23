@@ -142,30 +142,36 @@ y.shape
 ###1.2.ii. 
 Now make four averages (As in Exercise 1.1.iv), one for each PAS rating, and plot the four time courses (one for each PAS rating) for the sensor found in Exercise 1.1.vi  
 ```{python}
-pas1 = 0
-pas2 = 0
-pas3 = 0
-pas4 = 0
+sensor_73 = data[:,73,:]
 
-for i in y:
-    if y[i] == 1:
-        pas1 += 1
-    if y[i] == 2:
-        pas2 += 1
-    if y[i] == 3:
-        pas3 += 1
-    if y[i] == 4:
-        pas4 += 1
+pas_1 = np.where(y == 1) # make a vector with numbers indicating at what index a 1 is present
+avg_rep_pas_1 = np.mean(sensor_73[pas_1], axis= 0)
+sensor_73[pas_1].shape 
 
-pas1
-pas2 
-pas3 
-pas4 
+pas_2 = np.where(y == 2) 
+avg_rep_pas_2 = np.mean(sensor_73[pas_2], axis= 0)
+sensor_73[pas_2].shape 
 
-print(np.mean(pas1))
-print(np.mean(pas2))
-print(np.mean(pas3))
-print(np.mean(pas4))
+pas_3 = np.where(y == 3) 
+avg_rep_pas_3 = np.mean(sensor_73[pas_3], axis= 0)
+sensor_73[pas_3].shape
+
+pas_4 = np.where(y == 4) 
+avg_rep_pas_4 = np.mean(sensor_73[pas_4], axis= 0)
+sensor_73[pas_4].shape
+```
+
+
+```{python}
+plt.figure()
+plt.plot(times, avg_rep_pas_1)
+plt.plot(times, avg_rep_pas_2)
+plt.plot(times, avg_rep_pas_3)
+plt.plot(times, avg_rep_pas_4)
+plt.xlabel("time")
+plt.ylabel("magnetic field(tesla)")
+plt.legend(["pas 1", "pas 2", "pas 3", "pas 4"])
+plt.show()
 ```
 
 ###1.2.iii. 
@@ -177,30 +183,85 @@ Notice that there are two early peaks (measuring visual activity from the brain)
 Now, we are going to do Logistic Regression with the aim of classifying the PAS-rating given by the subject  
 ###2.1.i. 
 We'll start with a binary problem - create a new array called `data_1_2` that only contains PAS responses 1 and 2. Similarly, create a `y_1_2` for the target vector  
+```{python}
+data_1_2 = np.concatenate((data[pas_1], data[pas_2]), axis=0)
+
+y_1_2 = []
+for i in range(len(y)):
+    if y[i] == 1:
+        y_1_2.append(i)
+    if y[i] == 2:
+        y_1_2.append(i)
+```
+
 ###2.1.ii. 
 Scikit-learn expects our observations (`data_1_2`) to be in a 2d-array, which has samples (repetitions) on dimension 1 and features (predictor variables) on dimension 2. Our `data_1_2` is a three-dimensional array. Our strategy will be to collapse our two last dimensions (sensors and time) into one dimension, while keeping the first dimension as it is (repetitions). Use `np.reshape` to create a variable `X_1_2` that fulfils these criteria.  
+```{python}
+
+```
+
 ###2.1.iii. 
 Import the `StandardScaler` and scale `X_1_2`  
+```{python}
+
+```
+
 ###2.1.iv. 
-Do a standard `LogisticRegression` - can be imported from `sklearn.linear_model` - make sure there is no `penalty` applied  
+Do a standard `LogisticRegression` - can be imported from `sklearn.linear_model` - make sure there is no `penalty` applied 
+```{python}
+
+```
+
 ###2.1.v. 
 Use the `score` method of `LogisticRegression` to find out how many labels were classified correctly. Are we overfitting? Besides the score, what would make you suspect that we are overfitting?  
+```{python}
+
+```
+
 ###2.1.vi. 
 Now apply the _L1_ penalty instead - how many of the coefficients (`.coef_`) are non-zero after this?  
+```{python}
+
+```
+
 ###2.1.vii. 
 Create a new reduced $X$ that only includes the non-zero coefficients - show the covariance of the non-zero features (two covariance matrices can be made; $X_{reduced}X_{reduced}^T$ or $X_{reduced}^TX_{reduced}$ (you choose the right one)) . Plot the covariance of the features using `plt.imshow`. Compared to the plot from 1.1.iii, do we see less covariance?  
+```{python}
+
+```
+
 ##2.2) 
 Now, we are going to build better (more predictive) models by using cross-validation as an outcome measure    
 ###2.2.i. 
 Import `cross_val_score` and `StratifiedKFold` from `sklearn.model_selection`  
+```{python}
+
+```
+
 ###2.2.ii. 
 To make sure that our training data sets are not biased to one target (PAS) or the other, create `y_1_2_equal`, which should have an equal number of each target. Create a similar `X_1_2_equal`. The function `equalize_targets_binary` in the code chunk associated with Exercise 2.2.ii can be used. Remember to scale `X_1_2_equal`!  
+```{python}
+
+```
+
 ###2.2.iii. 
 Do cross-validation with 5 stratified folds doing standard `LogisticRegression` (See Exercise 2.1.iv)  
+```{python}
+
+```
+
 ###2.2.iv. 
 Do L2-regularisation with the following `Cs=  [1e5, 1e1, 1e-5]`. Use the same kind of cross-validation as in Exercise 2.2.iii. In the best-scoring of these models, how many more/fewer predictions are correct (on average)?  
+```{python}
+
+```
+
 ###2.2.v. 
 Instead of fitting a model on all `n_sensors * n_samples` features, fit  a logistic regression (same kind as in Exercise 2.2.iv (use the `C` that resulted in the best prediction)) for __each__ time sample and use the same cross-validation as in Exercise 2.2.iii. What are the time points where classification is best? Make a plot with time on the x-axis and classification score on the y-axis with a horizontal line at the chance level (what is the chance level for this analysis?)  
+```{python}
+
+```
+
 ###2.2.vi. 
 Now do the same, but with L1 regression - set `C=1e-1` - what are the time points when classification is best? (make a plot)?  
 ###2.2.vii. 
