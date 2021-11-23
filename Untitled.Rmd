@@ -73,7 +73,7 @@ add normally distributed noise to $y$ with $\sigma=5$ (set a seed to 7 `np.rando
 # scale = Standard deviation 
 # size = Output shape
 np.random.seed(7)
-random_vector = np.random.normal(loc=0, scale=5, size=60)
+random_vector = np.random.normal(loc=0, scale=5, size=len(x))
 y_noisy = y + random_vector
 ```
 **Rating: i** 
@@ -92,7 +92,7 @@ Fit a linear regression using `LinearRegression` from `sklearn.linear_model` bas
 ```{python}
 # Reshape the data so regressor will swallow it
 x_train = x.reshape(-1, 1)
-y_train = y_noisy.reshape(-1, 1)
+y_train = y_noisy#.reshape(-1, 1)
 from sklearn.linear_model import LinearRegression
 regressor = LinearRegression()
 fit = regressor.fit(x_train, y_train) 

@@ -70,7 +70,7 @@ y_quadratic_hat # calculate this
 
 ```
 
-# EXERCISE 2: Fitting training data and applying it to test sets with and without regularization
+# EXERCISE 2: Fitting training data and  applying it to test sets with and without regularization
 
 All references to pages are made to this book:
 Raschka, S., 2015. Python Machine Learning. Packt Publishing Ltd.  
