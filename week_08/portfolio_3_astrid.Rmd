@@ -19,6 +19,7 @@ options(reticulate.repl.quiet = TRUE)
 ```{python}
 import numpy as np
 import matplotlib.pyplot as plt
+np.random.seed(7)
 ```
 
 
@@ -54,7 +55,7 @@ data.shape
 ###1.1.ii.
 The time range is from (and including) -200 ms to (and including) 800 ms with a sample recorded every 4 ms. At time 0, the visual stimulus was briefly presented. Create a 1-dimensional array called `times` that represents this.  
 ```{python}
-times = np.arange(-200, 804, 4)
+times = np.arange(-200, 804, 4) #could just be 801 to have 800 included.
 ```
 
 ###1.1.iii. 
@@ -116,10 +117,10 @@ Plot the magnetic field for each of the repetitions (a line for each) for the se
 # plt.axvline(112)
 # plt.show()
 
-for i in range(251):
+for i in range(682): #Not 251 but 682
     plt.plot(times, data[i,73, :])
     
-plt.axvline(112)
+plt.axvline(times[112])
 plt.show()
 ```
 
@@ -184,44 +185,51 @@ Now, we are going to do Logistic Regression with the aim of classifying the PAS-
 ###2.1.i. 
 We'll start with a binary problem - create a new array called `data_1_2` that only contains PAS responses 1 and 2. Similarly, create a `y_1_2` for the target vector  
 ```{python}
-data_1_2 = np.concatenate((data[pas_1], data[pas_2]), axis=0)
+pas_1_2 = np.where((y == 1) | (y == 2))
 
-y_1_2 = []
-for i in range(len(y)):
-    if y[i] == 1:
-        y_1_2.append(i)
-    if y[i] == 2:
-        y_1_2.append(i)
+data_1_2 = np.squeeze(data[pas_1_2,:,:])
+
+y_1_2 = np.squeeze(y[pas_1_2])
 ```
 
 ###2.1.ii. 
 Scikit-learn expects our observations (`data_1_2`) to be in a 2d-array, which has samples (repetitions) on dimension 1 and features (predictor variables) on dimension 2. Our `data_1_2` is a three-dimensional array. Our strategy will be to collapse our two last dimensions (sensors and time) into one dimension, while keeping the first dimension as it is (repetitions). Use `np.reshape` to create a variable `X_1_2` that fulfils these criteria.  
 ```{python}
-
+X_1_2 = data_1_2.reshape(214, -1)
 ```
 
 ###2.1.iii. 
 Import the `StandardScaler` and scale `X_1_2`  
 ```{python}
-
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler() 
+X_1_2 = scaler.fit_transform(X_1_2)
 ```
 
 ###2.1.iv. 
 Do a standard `LogisticRegression` - can be imported from `sklearn.linear_model` - make sure there is no `penalty` applied 
 ```{python}
-
+from sklearn.linear_model import LogisticRegression
+regressor = LogisticRegression(penalty='none', solver='lbfgs')
+log_fit = regressor.fit(X_1_2, y_1_2)
+log_fit.coef_
+np.count_nonzero(log_fit.coef_)
 ```
 
 ###2.1.v. 
 Use the `score` method of `LogisticRegression` to find out how many labels were classified correctly. Are we overfitting? Besides the score, what would make you suspect that we are overfitting?  
 ```{python}
-
+log_fit.score(X_1_2, y_1_2)
 ```
+> We're overfitting because we haven't split up the data into train and test sets
 
 ###2.1.vi. 
 Now apply the _L1_ penalty instead - how many of the coefficients (`.coef_`) are non-zero after this?  
 ```{python}
-
+from sklearn.linear_model import LogisticRegression
+regressor = LogisticRegression(penalty='l1', solver='liblinear')
+log_fit_L1 = regressor.fit(X_1_2, y_1_2)
+np.count_nonzero(log_fit_L1.coef_)
 ```
 
 ###2.1.vii. 
