@@ -39,7 +39,7 @@ The files `megmag_data.npy` and `pas_vector.npy` can be downloaded here (http://
 ##1.1) 
 Load `megmag_data.npy` and call it `data` using `np.load`. You can use `join`, which can be imported from `os.path`, to create paths from different string segments 
 ```{python}
-data = np.load("megmag_data.npy")
+data = np.load("data/megmag_data.npy")
 ```
 
 ###1.1.i. 
@@ -129,7 +129,7 @@ Describe in your own words how the response found in the average is represented 
 ##1.2) 
 Now load `pas_vector.npy` (call it `y`). PAS is the same as in Assignment 2, describing the clarity of the subjective experience the subject reported after seeing the briefly presented stimulus  
 ```{python}
-y = np.load("pas_vector.npy")
+y = np.load("data/pas_vector.npy")
 y
 ```
 
@@ -235,7 +235,19 @@ np.count_nonzero(log_fit_L1.coef_)
 ###2.1.vii. 
 Create a new reduced $X$ that only includes the non-zero coefficients - show the covariance of the non-zero features (two covariance matrices can be made; $X_{reduced}X_{reduced}^T$ or $X_{reduced}^TX_{reduced}$ (you choose the right one)) . Plot the covariance of the features using `plt.imshow`. Compared to the plot from 1.1.iii, do we see less covariance?  
 ```{python}
-
+non_zero = np.where(log_fit_L1.coef_ != 0)
+print(non_zero) # this gives us the second column which has the non zero coefficients only 
+print(non_zero[1])
+x_reduced = X_1_2[:,non_zero[1]] # Taking the previous X_1_2 and subsetting the non-zero coefficients
+print(x_reduced)
+print(x_reduced[1]) 
+# we do the x_reduced transposed * x_reduced so that we "get rid of" the zeros, per matrix multiplication 
+x_reduced_cov = (x_reduced.T @ x_reduced)
+x_reduced_cov.shape 
+plt.figure()
+plt.imshow(x_reduced_cov)
+plt.colorbar()
+plt.show()
 ```
 
 ##2.2) 
@@ -243,19 +255,71 @@ Now, we are going to build better (more predictive) models by using cross-valida
 ###2.2.i. 
 Import `cross_val_score` and `StratifiedKFold` from `sklearn.model_selection`  
 ```{python}
-
+from sklearn.model_selection import cross_val_score as cvs
+from sklearn.model_selection import StratifiedKFold as skfold
 ```
 
 ###2.2.ii. 
 To make sure that our training data sets are not biased to one target (PAS) or the other, create `y_1_2_equal`, which should have an equal number of each target. Create a similar `X_1_2_equal`. The function `equalize_targets_binary` in the code chunk associated with Exercise 2.2.ii can be used. Remember to scale `X_1_2_equal`!  
 ```{python}
+# Exercise 2.2.ii
+def equalize_targets_binary(data, y):
+    np.random.seed(7)
+    targets = np.unique(y) ## find the number of targets
+    if len(targets) > 2:
+        raise NameError("can't have more than two targets")
+    counts = list()
+    indices = list()
+    for target in targets:
+        counts.append(np.sum(y == target)) ## find the number of each target
+        indices.append(np.where(y == target)[0]) ## find their indices
+    min_count = np.min(counts)
+    # randomly choose trials
+    first_choice = np.random.choice(indices[0], size=min_count, replace=False)
+    second_choice = np.random.choice(indices[1], size=min_count,replace=False)
+    
+    # create the new data sets
+    new_indices = np.concatenate((first_choice, second_choice))
+    new_y = y[new_indices]
+    new_data = data[new_indices, :, :]
+    
+    return new_data, new_y
+```
 
+
+```{python}
+data_1_2.shape
+y_1_2.shape
+
+# Use the function
+data_1_2_equal, y_1_2_equal = equalize_targets_binary(data_1_2, y_1_2)
+
+data_1_2_equal.shape
+y_1_2_equal.shape
+
+# Reshape data into 2d
+X_1_2_equal = data_1_2_equal.reshape(198, -1)
+
+X_1_2_equal.shape
+
+# Scale the data
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler() 
+X_1_2_equal = scaler.fit_transform(X_1_2_equal)
+
+X_1_2_equal.shape
 ```
 
 ###2.2.iii. 
 Do cross-validation with 5 stratified folds doing standard `LogisticRegression` (See Exercise 2.1.iv)  
 ```{python}
+from sklearn.linear_model import LogisticRegression
+regressor = LogisticRegression(penalty='none', solver='lbfgs')
 
+log_fit = regressor.fit(X_1_2, y_1_2)
+log_fit.coef_
+
+np.count_nonzero(log_fit.coef_)
 ```
 
 ###2.2.iv. 
@@ -271,9 +335,17 @@ Instead of fitting a model on all `n_sensors * n_samples` features, fit  a logis
 ```
 
 ###2.2.vi. 
-Now do the same, but with L1 regression - set `C=1e-1` - what are the time points when classification is best? (make a plot)?  
+Now do the same, but with L1 regression - set `C=1e-1` - what are the time points when classification is best? (make a plot)? 
+```{python}
+
+```
+
 ###2.2.vii. 
-Finally, fit the same models as in Exercise 2.2.vi but now for `data_1_4` and `y_1_4` (create a data set and a target vector that only contains PAS responses 1 and 4). What are the time points when classification is best? Make a plot with time on the x-axis and classification score on the y-axis with a horizontal line at the chance level (what is the chance level for this analysis?)  
+Finally, fit the same models as in Exercise 2.2.vi but now for `data_1_4` and `y_1_4` (create a data set and a target vector that only contains PAS responses 1 and 4). What are the time points when classification is best? Make a plot with time on the x-axis and classification score on the y-axis with a horizontal line at the chance level (what is the chance level for this analysis?) 
+```{python}
+
+```
+
 ##2.3) 
 Is pairwise classification of subjective experience possible? Any surprises in the classification accuracies, i.e. how does the classification score fore PAS 1 vs 4 compare to the classification score for PAS 1 vs 2?  
 
