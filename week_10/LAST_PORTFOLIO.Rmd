@@ -19,6 +19,10 @@ options(reticulate.repl.quiet = TRUE)
 ```{python, include = FALSE}
 import numpy as np
 import matplotlib.pyplot as plt
+
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler() 
+
 np.random.seed(7)
 ```
 
@@ -72,7 +76,7 @@ y = np.load("data/pas_vector.npy")
 Equalize the number of targets in `y` and `data` using `equalize_targets`
 ```{python}
 data_equal, y_equal = equalize_targets(data, y)
-# lets hace a lookie
+# lets have a lookie
 data.shape
 y.shape
 data_equal.shape
@@ -82,16 +86,20 @@ y_equal.shape
 Construct `times=np.arange(-200, 804, 4)` and find the index corresponding to 248 ms - then reduce the dimensionality of `data` from three to two dimensions by only choosing the time index corresponding to 248 ms (248 ms was where we found the maximal average response in Assignment 3) 
 ```{python}
 times = np.arange(-200, 804, 4)
-max_index = np.where(times == 248)[0][0] #The [0] thingeys are to get into the nr. not just 
+max_index = np.where(times == 248)[0][0] #The [0] thingeys are to get into the nr. not just the wierd arrays
 max_index
 data_248 = data_equal[:,:,max_index]
 data_248.shape
 ```
 >the equal data or the normal data? Cuz the times thingy wouldn't work for the equal data right?
->expect it will! cuz look at the time dim, that didn't get effected by 
+>expect it will! cuz look at the time dim, that didn't get effected by the equalising
 
 ###1.1.iv. 
-Scale the data using `StandardScaler`  
+Scale the data using `StandardScaler` 
+```{python}
+data_248_scaled = scaler.fit_transform(data_248)
+```
+
 ###1.1.v. 
 Calculate the sample covariance matrix for the sensors (you can use `np.cov`) and plot it (either using `plt.imshow` or `sns.heatmap` (`import seaborn as sns`))  
 ###1.1.vi. 
