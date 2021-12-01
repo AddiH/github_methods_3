@@ -1,7 +1,7 @@
 ---
 title: "practical_exercise_10 , Methods 3, 2021, autumn semester"
-author: '[FILL IN YOUR NAME]'
-date: "[FILL IN THE DATE]"
+author: 'Anja, Astrid, Jessica, Juli and Magnus'
+date: "15/11/21"
 output: html_document
 ---
 
@@ -19,9 +19,16 @@ options(reticulate.repl.quiet = TRUE)
 ```{python, include = FALSE}
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 from sklearn.preprocessing import StandardScaler
 scaler = StandardScaler() 
+
+from sklearn.model_selection import StratifiedKFold
+StratifiedKFold = StratifiedKFold()
+
+from sklearn.model_selection import cross_val_score
+cross_val_score = cross_val_score()
 
 np.random.seed(7)
 ```
@@ -101,27 +108,98 @@ data_248_scaled = scaler.fit_transform(data_248)
 ```
 
 ###1.1.v. 
-Calculate the sample covariance matrix for the sensors (you can use `np.cov`) and plot it (either using `plt.imshow` or `sns.heatmap` (`import seaborn as sns`))  
+Calculate the sample covariance matrix for the sensors (you can use `np.cov`) and plot it (either using `plt.imshow` or `sns.heatmap` (`import seaborn as sns`))
+```{python}
+cov_248 = np.cov(data_248_scaled, rowvar = False)
+abs_cov_248 = np.abs(cov_248) # This is just to make it obvious that light is "bad" and dark is "good". Whether the covariance is not interesting right now.
+plt.figure()
+sns.heatmap(abs_cov_248, square = True)
+plt.show()
+```
+
 ###1.1.vi. 
 What does the off-diagonal activation imply about the independence of the signals measured by the 102 sensors?  
+>The covariance is similar in big chucks - this might indicate sensors that are close spatially, but not in index. Thus they pick up some of the same activation. In data like this covariance can be seen because sensors from opposite brain hemispheres can pick up similar data.
+Ideally we would have 0 cov exept for the diagonal. We could probably reduce the dimensions when we see so much covariance. 
+
 ###1.1.vii. 
 Run `np.linalg.matrix_rank` on the covariance matrix - what integer value do you get? (we'll use this later)  
+```{python}
+np.linalg.matrix_rank(cov_248)
+```
+>97
+
 ###1.1.viii. 
 Find the eigenvalues and eigenvectors of the covariance matrix using `np.linalg.eig` - note that some of the numbers returned are complex numbers, consisting of a real and an imaginary part (they have a _j_ next to them). We are going to ignore this by only looking at the real parts of the eigenvectors and -values. Use `np.real` to retrieve only the real parts  
+```{python}
+eigenvalues, eigenvectors = np.linalg.eig(cov_248)
+sum(np.iscomplex(eigenvalues)) # Finding and counting the True values, that represent complex numbers
+sum(np.iscomplex(eigenvectors))
+# No complex numbers found, no np.real needed
+```
+
 ##1.2) 
 Create the weighting matrix $W$ and the projected data, $Z$
+
 ###1.2.i. 
 We need to sort the eigenvectors and eigenvalues according to the absolute values of the eigenvalues (use `np.abs` on the eigenvalues).  
+```{python}
+eigenvalues = np.abs(eigenvalues)
+eigenvectors = np.abs(eigenvectors)
+```
+
 ###1.2.ii. 
-Then, we will find the correct ordering of the indices and create an array, e.g. `sorted_indices` that contains these indices. We want to sort the values from highest to lowest. For that, use `np.argsort`, which will find the indices that correspond to sorting the values from lowest to highest. Subsequently, use `np.flip`, which will reverse the order of the indices.   
+Then, we will find the correct ordering of the indices and create an array, e.g. `sorted_indices` that contains these indices. We want to sort the values from highest to lowest. For that, use `np.argsort`, which will find the indices that correspond to sorting the values from lowest to highest. Subsequently, use `np.flip`, which will reverse the order of the indices.  
+```{python}
+sorted_indices = np.argsort(eigenvalues) #This array has the indices of the eigenvalues - but sorted so the index with the smallest value is first.
+sorted_indices = np.flip(sorted_indices) # Now it is higest to lowest
+#eigenvalues tells the length of the eigenvectors that have been normalised so that they are all have length 1.
+
+```
+
 ###1.2.iii. 
 Finally, create arrays of sorted eigenvalues and eigenvectors using the `sorted_indices` array just created. For the eigenvalues, it should like this `eigenvalues = eigenvalues[sorted_indices]` and for the eigenvectors: `eigenvectors = eigenvectors[:, sorted_indices]`
+```{python}
+eigenvalues
+eigenvalues = eigenvalues[sorted_indices]
+eigenvalues
+eigenvectors = eigenvectors[:, sorted_indices]
+```
+
+
+```{python}
+# Just simple code to understand how it works. Exept is doesn't?
+a = np.arange(0, 11, 1)
+a
+a = np.random.shuffle(a)
+a
+sorted_indices = np.argsort(a)
+sorted_indices
+a[sorted_indices]
+```
+
 ###1.2.iv. 
 Plot the log, `np.log`, of the eigenvalues, `plt.plot(np.log(eigenvalues), 'o')` - are there some values that stand out from the rest? In fact, 5 (noise) dimensions have already been projected out of the data - how does that relate to the matrix rank (Exercise 1.1.vii)  
+```{python}
+plt.figure()
+plt.plot(np.log(eigenvalues), 'o', markersize = 2)
+plt.show()
+```
+>97 + 5 = 102
+
 ###1.2.v. 
-Create the weighting matrix, `W` (it is the sorted eigenvectors)  
+Create the weighting matrix, `W` (it is the sorted eigenvectors)
+```{python}
+W = eigenvectors
+```
+
 ###1.2.vi. 
 Create the projected data, `Z`, $Z = XW$ - (you can check you did everything right by checking whether the $X$ you get from $X = ZW^T$ is equal to your original $X$, `np.isclose` may be of help)
+```{python}
+
+Z = X @ W
+```
+
 ###1.2.vii. 
 Create a new covariance matrix of the principal components (n=102) - plot it! What has happened off-diagonal and why?
 
