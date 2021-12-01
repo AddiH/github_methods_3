@@ -139,13 +139,13 @@ Create the weighting matrix $W$ and the projected data, $Z$
 ###1.2.i. 
 We need to sort the eigenvectors and eigenvalues according to the absolute values of the eigenvalues (use `np.abs` on the eigenvalues).  
 ```{python}
-abs_eigenvalues = np.abs(eigenvalues)
+eigenvalues = np.abs(eigenvalues)
 ```
 
 ###1.2.ii. 
 Then, we will find the correct ordering of the indices and create an array, e.g. `sorted_indices` that contains these indices. We want to sort the values from highest to lowest. For that, use `np.argsort`, which will find the indices that correspond to sorting the values from lowest to highest. Subsequently, use `np.flip`, which will reverse the order of the indices.  
 ```{python}
-sorted_indices = np.argsort(abs_eigenvalues) #This array has the indices of the eigenvalues - but sorted so the index with the smallest value is first.
+sorted_indices = np.argsort(eigenvalues) #This array has the indices of the eigenvalues - but sorted so the index with the smallest value is first.
 sorted_indices = np.flip(sorted_indices) # Now it is higest to lowest
 #eigenvalues tells the length of the eigenvectors that have been normalised so that they are all have length 1.
 
@@ -175,16 +175,15 @@ a[sorted_indices]
 ###1.2.iv. 
 Plot the log, `np.log`, of the eigenvalues, `plt.plot(np.log(eigenvalues), 'o')` - are there some values that stand out from the rest? In fact, 5 (noise) dimensions have already been projected out of the data - how does that relate to the matrix rank (Exercise 1.1.vii)  
 ```{python}
-#@ This is bad
+
 plt.figure()
 plt.plot(np.log(eigenvalues), 'o', markersize = 2)
 plt.show()
 
-plt.figure()
-plt.plot(np.log(np.abs(eigenvalues)), 'o', markersize = 2)
-plt.show()
 ```
 >97 + 5 = 102
+>only 97 are interesting 
+>eigen-value for last 5 points is numerically zero, but this is how our computer represents them. (remeber we took the log)
 
 ###1.2.v. 
 Create the weighting matrix, `W` (it is the sorted eigenvectors)
@@ -208,13 +207,13 @@ np.isclose(X, X_test)
 ###1.2.vii. 
 Create a new covariance matrix of the principal components (n=102) - plot it! What has happened off-diagonal and why?
 ```{python}
-cov_W = np.cov(W, rowvar = False)
-abs_cov_W = np.abs(cov_W) # This is just to make it obvious that light is "bad" and dark is "good". Whether the covariance is not interesting right now.
+cov_Z = np.cov(Z, rowvar = False)
+abs_cov_Z = np.abs(cov_Z) # This is just to make it obvious that light is "bad" and dark is "good". Whether the covariance is not interesting right now.
 plt.figure()
-sns.heatmap(abs_cov_W, square = True)
+sns.heatmap(abs_cov_Z, square = True)
 plt.show()
 ```
-> Looks near perfect! Barely any covariance above 0 is seen. The last couple of points have covariance - maybe this is related to the 5 points that dropped of on the previous graph?
+> Very few eigenvalues covariate - that is good, because they do not 
 
 # EXERCISE 2 - Use logistic regression with cross-validation to find the optimal number of principal components  
 
@@ -230,23 +229,39 @@ stand_log_reg.coef_
 
 
 ```{python}
-scores = []
-k = list(range(103))
-d = 102
-regressor = LogisticRegression(penalty = 'none')
 
-# Where do the arguments k and d go????
-for i in k:
-  regressor.fit(Z, y)
-  score = regressor.score(Z, y)
+regressor = LogisticRegression(penalty = 'none', solver="newton-cg")
+k = 1 # number of dimensions included. We start by slicing [0:1], which is just index 0, as 1 is not included
+scores = [] #empty list for the scores
+n = [] #empty list for checking that k behaves
+
+for i in range(1, 103):#we go through the loop 102 times
+  Z_i = Z[:,0:k] #slicing all of the first dimensions, but only part of the second
+  regressor.fit(Z_i, y)
+ 
+  score = regressor.score(Z_i, y)
   scores.append(score)
-print(scores)
+  
+  n.append(k)
+  
+  k = k + 1
 ```
 
 ###2.1.ii. 
 Make a plot with the number of principal components on the _x_-axis and classification accuracy on the _y_-axis - what is the general trend and why is this so?
+```{python}
+plt.figure()
+plt.plot(n, scores)
+plt.xlabel("principal components")
+plt.ylabel("classification accuracy")
+plt.show()
+```
+> more is gooder - to a ertain point
+
 ###2.1.iii. 
 In terms of classification accuracy, what is the effect of adding the five last components? Why do you think this is so?
+> no difference, because they are useless
+
 #2.2) 
 Now, we are going to use cross-validation - we are using `cross_val_score` and `StratifiedKFold` from `sklearn.model_selection`
 ###2.2.i. 
