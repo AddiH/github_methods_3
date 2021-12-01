@@ -17,6 +17,8 @@ options(reticulate.repl.quiet = TRUE)
 ```
 
 ```{python, include = FALSE}
+np.random.seed(7)
+
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -25,12 +27,15 @@ from sklearn.preprocessing import StandardScaler
 scaler = StandardScaler() 
 
 from sklearn.linear_model import LogisticRegression
+regressor = LogisticRegression()
 
 from sklearn.model_selection import StratifiedKFold
+cv = StratifiedKFold()
 
 from sklearn.model_selection import cross_val_score
 
-np.random.seed(7)
+from sklearn.decomposition import PCA
+
 ```
 
 ```{python, include = FALSE}
@@ -222,7 +227,7 @@ We are going to run logistic regression with in-sample validation
 ###2.1.i. 
 First, run standard logistic regression (no regularization) based on ~~$Z_{d \times k}$~~ $Z_{n \times k}$ and `y` (the target vector). Fit (`.fit`) 102 models based on: $k = [1, 2, ..., 101, 102]$ and $d = 102$. For each fit get the classification accuracy, (`.score`), when applied to $Z_{d \times k}$ and $y$. This is an in-sample validation. Use the solver `newton-cg` if the default solver doesn't converge
 ```{python}
-regressor = LogisticRegression(solver="newton-cg")
+regressor = LogisticRegression(penalty = 'none', solver="newton-cg")
 stand_log_reg = regressor.fit(Z, y)
 stand_log_reg.coef_
 ```
@@ -267,15 +272,47 @@ Now, we are going to use cross-validation - we are using `cross_val_score` and `
 ###2.2.i. 
 Define the variable: `cv = StratifiedKFold()` and run `cross_val_score` (remember to set the `cv` argument to your created `cv` variable). Use the same `estimator` in `cross_val_score` as in Exercise 2.1.i. Find the mean score over the 5 folds (the default of `StratifiedKFold`) for each $k$, $k = [1, 2, ..., 101, 102]$
 ```{python}
-cv = StratifiedKFold()
-from sklearn.model_selection import cross_val_score
-cv.c
+cv = StratifiedKFold(n_splits = 5)#the default is 5, but here you see it
+regressor = LogisticRegression(penalty='none', solver="newton-cg") #same as before
+
+cv_scores = []
+cv_n = []
+k = 1
+
+for i in range(1, 103):
+    Z_i = Z[:,0:k] 
+    
+    score = cross_val_score(regressor, Z_i, y)#only real difference from prev loop
+    cv_scores.append(np.mean(score))
+    
+    cv_n.append(k)
+    k = k + 1
+
+cv_scores
+
+# np.mean(cross_val_score(regressor, Z[:,0:1], y))
+# np.mean(cross_val_score(regressor, Z[:,0:2], y))
+# np.mean(cross_val_score(regressor, Z[:,0:60], y))
 ```
 
 ###2.2.ii. 
 Make a plot with the number of principal components on the _x_-axis and classification accuracy on the _y_-axis - how is this plot different from the one in Exercise 2.1.ii?
+```{python}
+plt.figure()
+plt.plot(cv_n, cv_scores)
+plt.xlabel("principal components")
+plt.ylabel("classification accuracy")
+plt.show()
+```
+>big graph drop
+
 ###2.2.iii. 
 What is the number of principal components, $k_{max\_accuracy}$, that results in the greatest classification accuracy when cross-validated?  
+```{python}
+np.argmax(cv_scores)
+```
+> at index 15, so at k = 16
+
 ###2.2.iv. 
 How many percentage points is the classification accuracy increased with relative to the to the full-dimensional, $d$, dataset 
 ###2.2.v. 
@@ -284,8 +321,64 @@ How do the analyses in Exercises 2.1 and 2.2 differ from one another? Make sure 
 We now make the assumption that $k_{max\_accuracy}$ is representative for each time sample (we only tested for 248 ms). We will use the PCA implementation from _scikit-learn_, i.e. import `PCA` from `sklearn.decomposition`.
 ###2.3.i. 
 For __each__ of the 251 time samples, use the same estimator and cross-validation as in Exercises 2.1.i and 2.2.i. Run two analyses - one where you reduce the dimensionality to $k_{max\_accuracy}$ dimensions using `PCA` and one where you use the full data. Remember to scale the data (for now, ignore if you get some convergence warnings - you can try to increase the number of iterations, but this is not obligatory)  
+
+> MY DATA IS EQUALISED AND SCALED BEFOREHAND. IS THAT OK?
+> I get an error saying "TypeError: 'PCA' object is not callable" is that ok?
+
+> Analysis uno - reducing "data" with PCA
+
+```{python}
+from sklearn.decomposition import PCA# why the hell do i need i there too
+
+PCA = PCA(n_components=16) #Number of components to keep
+a1_scores = []
+
+for i in range(251): #range starts at 0, so we get the 0 index. Not sure if we need 251 though? Python indexing is silly
+    data_i = data[:,:,i] #this is the for __each__ time dim
+    data_i = scaler.fit_transform(data_i) #FOR SOME REASON THIS IS IMPORTANT. IT means it is scaled twice sooo?????
+    data_i = PCA.fit_transform(data_i) #this should work idk
+    
+    score = cross_val_score(regressor, data_i, y)
+    a1_scores.append(np.mean(score))
+```
+
+
+
+>Analysis dos - NOT reducing "data" with PCA
+>a lot of converge error here, chunck is set to warning = false
+>takes a while to run, dont be bang
+
+```{python, warning = FALSE}
+a2_scores = []
+
+for i in range(251):
+    data_i = data[:,:,i]
+    data_i = scaler.fit_transform(data_i)
+    
+    score = cross_val_score(regressor, data_i, y)
+    a2_scores.append(np.mean(score))
+```
+
+```{python}
+a1_scores
+a2_scores
+```
+
+
 ###2.3.ii. 
 Plot the classification accuracies for each time sample for the analysis with PCA and for the one without in the same plot. Have time (ms) on the _x_-axis and classification accuracy on the _y_-axis 
+```{python}
+# WHy wontt tssyouo plotttttttttt
+plt.figure()
+plt.plot(times, a1_scores, "r")
+plt.plot(times, a2_scores, "b")
+plt.legend(["16 components", "102 components"])
+plt.xlabel("time (ms)")
+plt.ylabel("classification accuracy")
+plt.show()
+```
+
 ###2.3.iii. 
 Describe the differences between the two analyses - focus on the time interval between 0 ms and 400 ms - describe in your own words why the logistic regression performs better on the PCA-reduced dataset around the peak magnetic activity  
+
 

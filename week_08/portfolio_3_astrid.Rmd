@@ -48,7 +48,7 @@ The data is a 3-dimensional array. The first dimension is number of repetitions 
 data.shape
 
 ```
-> 682 - 1st dimension - X - number of repetitions of a visual stimulus
+> 682 - 1st dimension - X - number of repetitions of a visual stimulus (trials)
 > 102 - 2nd dimension - Y - number of sensors that record magnetic fields (in Tesla)
 > 251 - 3rd dimention - Z - number of time samples
 
