@@ -24,11 +24,11 @@ import seaborn as sns
 from sklearn.preprocessing import StandardScaler
 scaler = StandardScaler() 
 
+from sklearn.linear_model import LogisticRegression
+
 from sklearn.model_selection import StratifiedKFold
-StratifiedKFold = StratifiedKFold()
 
 from sklearn.model_selection import cross_val_score
-cross_val_score = cross_val_score()
 
 np.random.seed(7)
 ```
@@ -82,12 +82,7 @@ y = np.load("data/pas_vector.npy")
 ###1.1.ii. 
 Equalize the number of targets in `y` and `data` using `equalize_targets`
 ```{python}
-data_equal, y_equal = equalize_targets(data, y)
-# lets have a lookie
-data.shape
-y.shape
-data_equal.shape
-y_equal.shape
+data, y = equalize_targets(data, y)
 ```
 ###1.1.iii. 
 Construct `times=np.arange(-200, 804, 4)` and find the index corresponding to 248 ms - then reduce the dimensionality of `data` from three to two dimensions by only choosing the time index corresponding to 248 ms (248 ms was where we found the maximal average response in Assignment 3) 
@@ -95,7 +90,7 @@ Construct `times=np.arange(-200, 804, 4)` and find the index corresponding to 24
 times = np.arange(-200, 804, 4)
 max_index = np.where(times == 248)[0][0] #The [0] thingeys are to get into the nr. not just the wierd arrays
 max_index
-data_248 = data_equal[:,:,max_index]
+data_248 = data[:,:,max_index]
 data_248.shape
 ```
 >the equal data or the normal data? Cuz the times thingy wouldn't work for the equal data right?
@@ -104,13 +99,13 @@ data_248.shape
 ###1.1.iv. 
 Scale the data using `StandardScaler` 
 ```{python}
-data_248_scaled = scaler.fit_transform(data_248)
+data_248 = scaler.fit_transform(data_248)
 ```
 
 ###1.1.v. 
 Calculate the sample covariance matrix for the sensors (you can use `np.cov`) and plot it (either using `plt.imshow` or `sns.heatmap` (`import seaborn as sns`))
 ```{python}
-cov_248 = np.cov(data_248_scaled, rowvar = False)
+cov_248 = np.cov(data_248, rowvar = False)
 abs_cov_248 = np.abs(cov_248) # This is just to make it obvious that light is "bad" and dark is "good". Whether the covariance is not interesting right now.
 plt.figure()
 sns.heatmap(abs_cov_248, square = True)
@@ -144,14 +139,13 @@ Create the weighting matrix $W$ and the projected data, $Z$
 ###1.2.i. 
 We need to sort the eigenvectors and eigenvalues according to the absolute values of the eigenvalues (use `np.abs` on the eigenvalues).  
 ```{python}
-eigenvalues = np.abs(eigenvalues)
-eigenvectors = np.abs(eigenvectors)
+abs_eigenvalues = np.abs(eigenvalues)
 ```
 
 ###1.2.ii. 
 Then, we will find the correct ordering of the indices and create an array, e.g. `sorted_indices` that contains these indices. We want to sort the values from highest to lowest. For that, use `np.argsort`, which will find the indices that correspond to sorting the values from lowest to highest. Subsequently, use `np.flip`, which will reverse the order of the indices.  
 ```{python}
-sorted_indices = np.argsort(eigenvalues) #This array has the indices of the eigenvalues - but sorted so the index with the smallest value is first.
+sorted_indices = np.argsort(abs_eigenvalues) #This array has the indices of the eigenvalues - but sorted so the index with the smallest value is first.
 sorted_indices = np.flip(sorted_indices) # Now it is higest to lowest
 #eigenvalues tells the length of the eigenvectors that have been normalised so that they are all have length 1.
 
@@ -181,8 +175,13 @@ a[sorted_indices]
 ###1.2.iv. 
 Plot the log, `np.log`, of the eigenvalues, `plt.plot(np.log(eigenvalues), 'o')` - are there some values that stand out from the rest? In fact, 5 (noise) dimensions have already been projected out of the data - how does that relate to the matrix rank (Exercise 1.1.vii)  
 ```{python}
+#@ This is bad
 plt.figure()
 plt.plot(np.log(eigenvalues), 'o', markersize = 2)
+plt.show()
+
+plt.figure()
+plt.plot(np.log(np.abs(eigenvalues)), 'o', markersize = 2)
 plt.show()
 ```
 >97 + 5 = 102
@@ -195,14 +194,9 @@ W = eigenvectors
 
 ###1.2.vi. 
 Create the projected data, `Z`, $Z = XW$ - (you can check you did everything right by checking whether the $X$ you get from $X = ZW^T$ is equal to your original $X$, `np.isclose` may be of help)
+
 ```{python}
-# Is this correct? (see slides week 10, pg. 7):
-# X = n * d 
-
-data_248_scaled.shape # is (396,102) so we have 396*102 (40392) observations. Which is n?
-np.ndim(data_248) # is 2, which is d?
-
-X = 40392 * 2
+X = data_248
 W = eigenvectors
 Z = X @ W
 
@@ -210,38 +204,17 @@ Z = X @ W
 X_test = Z @ W.T
 np.isclose(X, X_test)
 ```
-
-
-```{python}
-# Or maybe it is just the data?:
-X = data_248_scaled
-W = eigenvectors
-Z = X @ W
-
-#Checking that it is correct
-X_test = Z @ W.T
-np.isclose(X, X_test)
-```
-
-```{python}
-# Or maybe it is the covariance matrix?:
-X = cov_248
-W = eigenvectors
-Z = X @ W
-
-#Checking that it is correct
-X_test = Z @ W.T
-np.isclose(X, X_test)
-```
-
-
 
 ###1.2.vii. 
 Create a new covariance matrix of the principal components (n=102) - plot it! What has happened off-diagonal and why?
-```{r}
-# idk what prinicpal competent issss
+```{python}
+cov_W = np.cov(W, rowvar = False)
+abs_cov_W = np.abs(cov_W) # This is just to make it obvious that light is "bad" and dark is "good". Whether the covariance is not interesting right now.
+plt.figure()
+sns.heatmap(abs_cov_W, square = True)
+plt.show()
 ```
-
+> Looks near perfect! Barely any covariance above 0 is seen. The last couple of points have covariance - maybe this is related to the 5 points that dropped of on the previous graph?
 
 # EXERCISE 2 - Use logistic regression with cross-validation to find the optimal number of principal components  
 
@@ -249,7 +222,9 @@ Create a new covariance matrix of the principal components (n=102) - plot it! Wh
 We are going to run logistic regression with in-sample validation 
 ###2.1.i. 
 First, run standard logistic regression (no regularization) based on ~~$Z_{d \times k}$~~ $Z_{n \times k}$ and `y` (the target vector). Fit (`.fit`) 102 models based on: $k = [1, 2, ..., 101, 102]$ and $d = 102$. For each fit get the classification accuracy, (`.score`), when applied to $Z_{d \times k}$ and $y$. This is an in-sample validation. Use the solver `newton-cg` if the default solver doesn't converge
-```{r}
+```{python}
+regressor = LogisticRegression(solver="newton-cg")
+stand_log_reg = regressor.fit(Z, y)
 
 ```
 
@@ -260,7 +235,13 @@ In terms of classification accuracy, what is the effect of adding the five last 
 #2.2) 
 Now, we are going to use cross-validation - we are using `cross_val_score` and `StratifiedKFold` from `sklearn.model_selection`
 ###2.2.i. 
-Define the variable: `cv = StratifiedKFold()` and run `cross_val_score` (remember to set the `cv` argument to your created `cv` variable). Use the same `estimator` in `cross_val_score` as in Exercise 2.1.i. Find the mean score over the 5 folds (the default of `StratifiedKFold`) for each $k$, $k = [1, 2, ..., 101, 102]$  
+Define the variable: `cv = StratifiedKFold()` and run `cross_val_score` (remember to set the `cv` argument to your created `cv` variable). Use the same `estimator` in `cross_val_score` as in Exercise 2.1.i. Find the mean score over the 5 folds (the default of `StratifiedKFold`) for each $k$, $k = [1, 2, ..., 101, 102]$
+```{python}
+cv = StratifiedKFold()
+from sklearn.model_selection import cross_val_score
+cv.c
+```
+
 ###2.2.ii. 
 Make a plot with the number of principal components on the _x_-axis and classification accuracy on the _y_-axis - how is this plot different from the one in Exercise 2.1.ii?
 ###2.2.iii. 
