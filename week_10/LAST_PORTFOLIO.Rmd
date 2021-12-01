@@ -196,19 +196,63 @@ W = eigenvectors
 ###1.2.vi. 
 Create the projected data, `Z`, $Z = XW$ - (you can check you did everything right by checking whether the $X$ you get from $X = ZW^T$ is equal to your original $X$, `np.isclose` may be of help)
 ```{python}
+# Is this correct? (see slides week 10, pg. 7):
+# X = n * d 
 
+data_248_scaled.shape # is (396,102) so we have 396*102 (40392) observations. Which is n?
+np.ndim(data_248) # is 2, which is d?
+
+X = 40392 * 2
+W = eigenvectors
 Z = X @ W
+
+#Checking that it is correct
+X_test = Z @ W.T
+np.isclose(X, X_test)
 ```
+
+
+```{python}
+# Or maybe it is just the data?:
+X = data_248_scaled
+W = eigenvectors
+Z = X @ W
+
+#Checking that it is correct
+X_test = Z @ W.T
+np.isclose(X, X_test)
+```
+
+```{python}
+# Or maybe it is the covariance matrix?:
+X = cov_248
+W = eigenvectors
+Z = X @ W
+
+#Checking that it is correct
+X_test = Z @ W.T
+np.isclose(X, X_test)
+```
+
+
 
 ###1.2.vii. 
 Create a new covariance matrix of the principal components (n=102) - plot it! What has happened off-diagonal and why?
+```{r}
+# idk what prinicpal competent issss
+```
+
 
 # EXERCISE 2 - Use logistic regression with cross-validation to find the optimal number of principal components  
 
-#1.1) 
+#2.1) 
 We are going to run logistic regression with in-sample validation 
 ###2.1.i. 
-First, run standard logistic regression (no regularization) based on $Z_{d \times k}$ and `y` (the target vector). Fit (`.fit`) 102 models based on: $k = [1, 2, ..., 101, 102]$ and $d = 102$. For each fit get the classification accuracy, (`.score`), when applied to $Z_{d \times k}$ and $y$. This is an in-sample validation. Use the solver `newton-cg` if the default solver doesn't converge
+First, run standard logistic regression (no regularization) based on ~~$Z_{d \times k}$~~ $Z_{n \times k}$ and `y` (the target vector). Fit (`.fit`) 102 models based on: $k = [1, 2, ..., 101, 102]$ and $d = 102$. For each fit get the classification accuracy, (`.score`), when applied to $Z_{d \times k}$ and $y$. This is an in-sample validation. Use the solver `newton-cg` if the default solver doesn't converge
+```{r}
+
+```
+
 ###2.1.ii. 
 Make a plot with the number of principal components on the _x_-axis and classification accuracy on the _y_-axis - what is the general trend and why is this so?
 ###2.1.iii. 
