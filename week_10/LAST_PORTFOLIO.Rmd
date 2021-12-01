@@ -225,7 +225,22 @@ First, run standard logistic regression (no regularization) based on ~~$Z_{d \ti
 ```{python}
 regressor = LogisticRegression(solver="newton-cg")
 stand_log_reg = regressor.fit(Z, y)
+stand_log_reg.coef_
+```
 
+
+```{python}
+scores = []
+k = list(range(103))
+d = 102
+regressor = LogisticRegression(penalty = 'none')
+
+# Where do the arguments k and d go????
+for i in k:
+  regressor.fit(Z, y)
+  score = regressor.score(Z, y)
+  scores.append(score)
+print(scores)
 ```
 
 ###2.1.ii. 
