@@ -289,10 +289,6 @@ for i in range(1, 103):
     k = k + 1
 
 cv_scores
-
-# np.mean(cross_val_score(regressor, Z[:,0:1], y))
-# np.mean(cross_val_score(regressor, Z[:,0:2], y))
-# np.mean(cross_val_score(regressor, Z[:,0:60], y))
 ```
 
 ###2.2.ii. 
@@ -315,15 +311,18 @@ np.argmax(cv_scores)
 
 ###2.2.iv. 
 How many percentage points is the classification accuracy increased with relative to the to the full-dimensional, $d$, dataset 
+```{python}
+round((cv_scores[15]-cv_scores[101])*100,2)
+```
+
 ###2.2.v. 
 How do the analyses in Exercises 2.1 and 2.2 differ from one another? Make sure to comment on the differences in optimization criteria.  
+>Text here
+
 #2.3) 
 We now make the assumption that $k_{max\_accuracy}$ is representative for each time sample (we only tested for 248 ms). We will use the PCA implementation from _scikit-learn_, i.e. import `PCA` from `sklearn.decomposition`.
 ###2.3.i. 
 For __each__ of the 251 time samples, use the same estimator and cross-validation as in Exercises 2.1.i and 2.2.i. Run two analyses - one where you reduce the dimensionality to $k_{max\_accuracy}$ dimensions using `PCA` and one where you use the full data. Remember to scale the data (for now, ignore if you get some convergence warnings - you can try to increase the number of iterations, but this is not obligatory)  
-
-> MY DATA IS EQUALISED AND SCALED BEFOREHAND. IS THAT OK?
-> I get an error saying "TypeError: 'PCA' object is not callable" is that ok?
 
 > Analysis uno - reducing "data" with PCA
 
@@ -335,8 +334,8 @@ a1_scores = []
 
 for i in range(251): #range starts at 0, so we get the 0 index. Not sure if we need 251 though? Python indexing is silly
     data_i = data[:,:,i] #this is the for __each__ time dim
-    data_i = scaler.fit_transform(data_i) #FOR SOME REASON THIS IS IMPORTANT. IT means it is scaled twice sooo?????
-    data_i = PCA.fit_transform(data_i) #this should work idk
+    data_i = scaler.fit_transform(data_i) 
+    data_i = PCA.fit_transform(data_i)
     
     score = cross_val_score(regressor, data_i, y)
     a1_scores.append(np.mean(score))
@@ -368,7 +367,6 @@ a2_scores
 ###2.3.ii. 
 Plot the classification accuracies for each time sample for the analysis with PCA and for the one without in the same plot. Have time (ms) on the _x_-axis and classification accuracy on the _y_-axis 
 ```{python}
-# WHy wontt tssyouo plotttttttttt
 plt.figure()
 plt.plot(times, a1_scores, "r")
 plt.plot(times, a2_scores, "b")
@@ -381,4 +379,4 @@ plt.show()
 ###2.3.iii. 
 Describe the differences between the two analyses - focus on the time interval between 0 ms and 400 ms - describe in your own words why the logistic regression performs better on the PCA-reduced dataset around the peak magnetic activity  
 
-
+> 
