@@ -93,8 +93,10 @@ data, y = equalize_targets(data, y)
 Construct `times=np.arange(-200, 804, 4)` and find the index corresponding to 248 ms - then reduce the dimensionality of `data` from three to two dimensions by only choosing the time index corresponding to 248 ms (248 ms was where we found the maximal average response in Assignment 3) 
 ```{python}
 times = np.arange(-200, 804, 4)
+
 max_index = np.where(times == 248)[0][0] #The [0] thingeys are to get into the nr. not just the wierd arrays
 max_index
+
 data_248 = data[:,:,max_index]
 data_248.shape
 ```
@@ -119,15 +121,14 @@ plt.show()
 
 ###1.1.vi. 
 What does the off-diagonal activation imply about the independence of the signals measured by the 102 sensors?  
->The covariance is similar in big chucks - this might indicate sensors that are close spatially, but not in index. Thus they pick up some of the same activation. In data like this covariance can be seen because sensors from opposite brain hemispheres can pick up similar data.
-Ideally we would have 0 cov exept for the diagonal. We could probably reduce the dimensions when we see so much covariance. 
+>The covariance is similar in big chucks - this might indicate sensors that are close spatially, but not in index number. Thus they pick up some of the same activation. In data like this covariance can be seen because sensors from opposite brain hemispheres can pick up similar data.
+Ideally we would have 0 cov except for the diagonal. We could probably reduce the dimensions when we see so much covariance. 
 
 ###1.1.vii. 
 Run `np.linalg.matrix_rank` on the covariance matrix - what integer value do you get? (we'll use this later)  
 ```{python}
 np.linalg.matrix_rank(cov_248)
 ```
->97
 
 ###1.1.viii. 
 Find the eigenvalues and eigenvectors of the covariance matrix using `np.linalg.eig` - note that some of the numbers returned are complex numbers, consisting of a real and an imaginary part (they have a _j_ next to them). We are going to ignore this by only looking at the real parts of the eigenvectors and -values. Use `np.real` to retrieve only the real parts  
@@ -151,30 +152,18 @@ eigenvalues = np.abs(eigenvalues)
 Then, we will find the correct ordering of the indices and create an array, e.g. `sorted_indices` that contains these indices. We want to sort the values from highest to lowest. For that, use `np.argsort`, which will find the indices that correspond to sorting the values from lowest to highest. Subsequently, use `np.flip`, which will reverse the order of the indices.  
 ```{python}
 sorted_indices = np.argsort(eigenvalues) #This array has the indices of the eigenvalues - but sorted so the index with the smallest value is first.
+sorted_indices
 sorted_indices = np.flip(sorted_indices) # Now it is higest to lowest
 #eigenvalues tells the length of the eigenvectors that have been normalised so that they are all have length 1.
-
+sorted_indices
 ```
 
 ###1.2.iii. 
 Finally, create arrays of sorted eigenvalues and eigenvectors using the `sorted_indices` array just created. For the eigenvalues, it should like this `eigenvalues = eigenvalues[sorted_indices]` and for the eigenvectors: `eigenvectors = eigenvectors[:, sorted_indices]`
 ```{python}
-eigenvalues
 eigenvalues = eigenvalues[sorted_indices]
 eigenvalues
 eigenvectors = eigenvectors[:, sorted_indices]
-```
-
-
-```{python}
-# Just simple code to understand how it works. Exept is doesn't?
-a = np.arange(0, 11, 1)
-a
-a = np.random.shuffle(a)
-a
-sorted_indices = np.argsort(a)
-sorted_indices
-a[sorted_indices]
 ```
 
 ###1.2.iv. 
@@ -188,7 +177,7 @@ plt.show()
 ```
 >97 + 5 = 102
 >only 97 are interesting 
->eigen-value for last 5 points is numerically zero, but this is how our computer represents them. (remeber we took the log)
+>eigen-value for last 5 points is numerically zero, but this is how our computer represents them. (remember we took the log)
 
 ###1.2.v. 
 Create the weighting matrix, `W` (it is the sorted eigenvectors)
@@ -218,7 +207,8 @@ plt.figure()
 sns.heatmap(abs_cov_Z, square = True)
 plt.show()
 ```
-> Very few eigenvalues covariate - that is good, because they do not 
+> Very few eigenvalues covariate - that is good, because they do not covariate.
+>#@ if possible change the legend
 
 # EXERCISE 2 - Use logistic regression with cross-validation to find the optimal number of principal components  
 
@@ -261,11 +251,12 @@ plt.xlabel("principal components")
 plt.ylabel("classification accuracy")
 plt.show()
 ```
-> more is gooder - to a ertain point
+> The accuracy increses with number of components up until approximately 97, after this additional components do not increase accuracy. This fits with the 5 noise dimensions we identified previously.
+>#@Overfitting?
 
 ###2.1.iii. 
 In terms of classification accuracy, what is the effect of adding the five last components? Why do you think this is so?
-> no difference, because they are useless
+> The last 5 components do not increase the accuracy because they are so highly correlated with other components - the data is already in the model. #@ correlation might be irrelevant
 
 #2.2) 
 Now, we are going to use cross-validation - we are using `cross_val_score` and `StratifiedKFold` from `sklearn.model_selection`
@@ -288,7 +279,6 @@ for i in range(1, 103):
     cv_n.append(k)
     k = k + 1
 
-cv_scores
 ```
 
 ###2.2.ii. 
@@ -300,7 +290,10 @@ plt.xlabel("principal components")
 plt.ylabel("classification accuracy")
 plt.show()
 ```
->big graph drop
+#@ Add text here
+> Adding components causes issues because they covariate with data that is already in the data set
+> Instead of overfitting as we did before, we can now see when additional components are no longer useful.
+> With K-fold we get the model that generelises better
 
 ###2.2.iii. 
 What is the number of principal components, $k_{max\_accuracy}$, that results in the greatest classification accuracy when cross-validated?  
@@ -317,7 +310,8 @@ round((cv_scores[15]-cv_scores[101])*100,2)
 
 ###2.2.v. 
 How do the analyses in Exercises 2.1 and 2.2 differ from one another? Make sure to comment on the differences in optimization criteria.  
->Text here
+#@ is this the same as before
+> Should we write the same agin in different words?
 
 #2.3) 
 We now make the assumption that $k_{max\_accuracy}$ is representative for each time sample (we only tested for 248 ms). We will use the PCA implementation from _scikit-learn_, i.e. import `PCA` from `sklearn.decomposition`.
@@ -327,7 +321,7 @@ For __each__ of the 251 time samples, use the same estimator and cross-validatio
 > Analysis uno - reducing "data" with PCA
 
 ```{python}
-from sklearn.decomposition import PCA# why the hell do i need i there too
+from sklearn.decomposition import PCA # why the hell do i need i there too
 
 PCA = PCA(n_components=16) #Number of components to keep
 a1_scores = []
@@ -348,6 +342,7 @@ for i in range(251): #range starts at 0, so we get the 0 index. Not sure if we n
 >takes a while to run, dont be bang
 
 ```{python, warning = FALSE}
+
 a2_scores = []
 
 for i in range(251):
@@ -378,5 +373,15 @@ plt.show()
 
 ###2.3.iii. 
 Describe the differences between the two analyses - focus on the time interval between 0 ms and 400 ms - describe in your own words why the logistic regression performs better on the PCA-reduced dataset around the peak magnetic activity  
-
-> 
+```{python}
+plt.figure()
+plt.plot(times, a1_scores, "r")
+plt.plot(times, a2_scores, "b")
+plt.legend(["16 components", "102 components"])
+plt.xlabel("time (ms)")
+plt.ylabel("classification accuracy")
+#@ maybe fix plt.xlim(0, 400)
+plt.show()
+```
+> In the interval 0 - 400ms the model based on 16 components performs better most of the time. A few peaks for the 102 components model is seen, but not often. 
+> The model based on the PCA-reduced dataset is better, because it avoids overfitting.
